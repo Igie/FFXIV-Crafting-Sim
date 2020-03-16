@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.29905.134
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FFXiv Crafting Sim", "FFXiv Crafting Sim\FFXiv Crafting Sim.csproj", "{B006CDAF-C912-4478-BB9E-36A98DEE932B}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{B006CDAF-C912-4478-BB9E-36A98DEE932B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B006CDAF-C912-4478-BB9E-36A98DEE932B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B006CDAF-C912-4478-BB9E-36A98DEE932B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B006CDAF-C912-4478-BB9E-36A98DEE932B}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {4BA01446-33E1-4988-B544-196AF211D96F}
+	EndGlobalSection
+EndGlobal
