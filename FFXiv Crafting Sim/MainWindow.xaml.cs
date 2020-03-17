@@ -1,4 +1,7 @@
-﻿using System;
+﻿using FFXIV_Crafting_Sim.Converters;
+using SaintCoinach;
+using SaintCoinach.Xiv;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -13,7 +16,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 
-namespace FFXiv_Crafting_Sim
+namespace FFXIV_Crafting_Sim
 {
     /// <summary>
     /// Interaction logic for MainWindow.xaml
@@ -31,6 +34,17 @@ namespace FFXiv_Crafting_Sim
             if (sender == null) return;
             string text = textBox.Text;
             textBox.Text = string.Concat(text.Where(x => char.IsDigit(x)));
+        }
+
+        private void Window_Loaded(object sender, RoutedEventArgs e)
+        {
+            G.Init();
+            var items = G.GameData.GameData.GetSheet<Item>();
+
+            var a = items[1].Icon.GetImage();
+
+            img.DataContext = a;
+
         }
     }
 }

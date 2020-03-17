@@ -1,9 +1,9 @@
-﻿<Application x:Class="FFXiv_Crafting_Sim.App"
+﻿<Application x:Class="FFXIV_Crafting_Sim.App"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:local="clr-namespace:FFXiv_Crafting_Sim"
+             xmlns:local="clr-namespace:FFXIV_Crafting_Sim"
+             xmlns:utils="clr-namespace:FFXIV_Crafting_Sim.Converters"
              StartupUri="MainWindow.xaml">
     <Application.Resources>
-         
     </Application.Resources>
 </Application>

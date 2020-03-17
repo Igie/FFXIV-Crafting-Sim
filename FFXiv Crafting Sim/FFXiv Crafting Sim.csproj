@@ -6,8 +6,8 @@
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{B006CDAF-C912-4478-BB9E-36A98DEE932B}</ProjectGuid>
     <OutputType>WinExe</OutputType>
-    <RootNamespace>FFXiv_Crafting_Sim</RootNamespace>
-    <AssemblyName>FFXiv Crafting Sim</AssemblyName>
+    <RootNamespace>FFXIV_Crafting_Sim</RootNamespace>
+    <AssemblyName>FFXIV Crafting Sim</AssemblyName>
     <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <ProjectTypeGuids>{60dc8134-eba5-43b8-bcc9-bb4bc16c2548};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
@@ -37,6 +37,7 @@
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Data" />
+    <Reference Include="System.Drawing" />
     <Reference Include="System.Xml" />
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Core" />
@@ -55,6 +56,10 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="Converters\ImageToBitmapSourceConverter.cs" />
+    <Compile Include="Stream\DataStream.cs" />
+    <Compile Include="Types\GameData\ItemInfo.cs" />
+    <Compile Include="Types\GameData\RecipeInfo.cs" />
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
@@ -63,6 +68,7 @@
       <DependentUpon>App.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="G.cs" />
     <Compile Include="MainWindow.xaml.cs">
       <DependentUpon>MainWindow.xaml</DependentUpon>
       <SubType>Code</SubType>
@@ -93,6 +99,12 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\SaintCoinach\SaintCoinach\SaintCoinach.csproj">
+      <Project>{8a7d65eb-3de3-4631-b286-cc73a3126002}</Project>
+      <Name>SaintCoinach</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

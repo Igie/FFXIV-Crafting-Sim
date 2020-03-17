@@ -6,7 +6,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
 
-namespace FFXiv_Crafting_Sim
+namespace FFXIV_Crafting_Sim
 {
     /// <summary>
     /// Interaction logic for App.xaml
