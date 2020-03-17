@@ -1,8 +1,10 @@
 ﻿using FFXIV_Crafting_Sim.Converters;
+using FFXIV_Crafting_Sim.GUI.Windows;
 using SaintCoinach;
 using SaintCoinach.Xiv;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -36,15 +38,51 @@ namespace FFXIV_Crafting_Sim
             textBox.Text = string.Concat(text.Where(x => char.IsDigit(x)));
         }
 
+
+
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
-            G.Init();
-            var items = G.GameData.GameData.GetSheet<Item>();
+            G.Init(this);
+        }
 
-            var a = items[1].Icon.GetImage();
+        public void SetStatus(string status = null, double? value = null, double? min = null, double? max = null)
+        {
 
-            img.DataContext = a;
+            Dispatcher.Invoke(() =>
+            {
+                if (status != null)
+                    LabelStatus.Content = status;
+                if (min.HasValue)
+                    ProgressBarStatus.Minimum = min.Value;
 
+                if (max.HasValue)
+                    ProgressBarStatus.Maximum = max.Value;
+
+                if (value.HasValue)
+                {
+                    if (value.Value < 0)
+                        ProgressBarStatus.Value -= value.Value;
+                    else
+                        ProgressBarStatus.Value = value.Value;
+                }
+            });
+        }
+
+        private void ReloadDatabaseClicked(object sender, RoutedEventArgs e)
+        {
+            G.ReloadDatabase();
+        }
+
+        private void ButtonSelectRecipe_Click(object sender, RoutedEventArgs e)
+        {
+            RecipeSelectionWindow window = new RecipeSelectionWindow();
+            
+            if (window.ShowDialog() == true)
+            {
+                
+            }
+
+            Debugger.Log(0, "", "Selected Recipe: " + (window.SelectedRecipe != null ? window.SelectedRecipe.Name : "None") + "\r\n");
         }
     }
 }

@@ -4,12 +4,9 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:FFXIV_Crafting_Sim"
-        xmlns:utils="clr-namespace:FFXIV_Crafting_Sim.Converters"
-        xmlns:drawing="clr-namespace:System.Drawing;assembly=System.Drawing"
         mc:Ignorable="d"
         Title="Crafting Simulator" Height="450" Width="800" Loaded="Window_Loaded">
     <Window.Resources>
-        <utils:ImageToBitmapSourceConverter x:Key="ImageConverter"/>
         <Style x:Key="LabelStyle" TargetType="Label">
             <Setter Property="Height" Value="25"/>
             <Setter Property="VerticalAlignment" Value="Top" />
@@ -29,7 +26,9 @@
         </Style>
     </Window.Resources>
     <Grid>
-        <Menu Height="23" VerticalAlignment="Top"/>
+        <Menu Height="23" VerticalAlignment="Top">
+            <MenuItem Header="Reload Database" Width="100" Height="23" Click="ReloadDatabaseClicked" />
+        </Menu>
         <GroupBox Header="Crafter Stats" HorizontalAlignment="Left" Height="133" Margin="0,23,0,0" VerticalAlignment="Top" FontFamily="Consolas" Width="266">
             <Grid>
                 <Grid.ColumnDefinitions>
@@ -53,30 +52,33 @@
                     <ColumnDefinition Width="55*"/>
                 </Grid.ColumnDefinitions>
                 <Label Content="Name:" Margin="1,10,0,0" Style="{StaticResource LabelStyle}"/>
-                <TextBox x:Name="TextBoxRecipeName" Margin="0,10,0,0" Style="{StaticResource TextBoxStyle}"/>
                 <Label Content="Level:" Margin="1,35,0,0" Style="{StaticResource LabelStyle}"/>
-                <TextBox x:Name="TextBoxRecipeLevel" Margin="0,35,0,0" Style="{StaticResource TextBoxStyle}" TextChanged="TextChangedAllowNumericOnly"/>
+                <TextBox x:Name="TextBoxRecipeLevel" Margin="0,35,0,0" IsReadOnly="True" Style="{StaticResource TextBoxStyle}" TextChanged="TextChangedAllowNumericOnly"/>
                 <Label Content="Suggested Craftsmanship:" Margin="1,60,0,0" Style="{StaticResource LabelStyle}" />
-                <TextBox x:Name="TextBoxSuggestedCraftsmanship" Margin="0,60,0,0" Style="{StaticResource TextBoxStyle}" TextChanged="TextChangedAllowNumericOnly"/>
+                <TextBox x:Name="TextBoxSuggestedCraftsmanship" Margin="0,60,0,0" IsReadOnly="True" Style="{StaticResource TextBoxStyle}" TextChanged="TextChangedAllowNumericOnly"/>
                 <Label Content="Suggested Control:" Margin="1,85,0,0"  Style="{StaticResource LabelStyle}"/>
-                <TextBox x:Name="TextBoxSuggestedControl" Margin="0,85,0,0" Style="{StaticResource TextBoxStyle}" TextChanged="TextChangedAllowNumericOnly"/>
+                <TextBox x:Name="TextBoxSuggestedControl" Margin="0,85,0,0" IsReadOnly="True" Style="{StaticResource TextBoxStyle}" TextChanged="TextChangedAllowNumericOnly"/>
                 <Label Content="Durability:" Margin="1,110,0,0" Style="{StaticResource LabelStyle}" />
-                <TextBox x:Name="TextBoxDurability" Margin="0,110,0,0" Style="{StaticResource TextBoxStyle}" TextChanged="TextChangedAllowNumericOnly"/>
+                <TextBox x:Name="TextBoxDurability" Margin="0,110,0,0" IsReadOnly="True" Style="{StaticResource TextBoxStyle}" TextChanged="TextChangedAllowNumericOnly"/>
                 <Label Content="Max Progress:" Margin="1,135,0,0" Style="{StaticResource LabelStyle}" />
-                <TextBox x:Name="TextBoxMaxProgress" Margin="0,135,0,0" Style="{StaticResource TextBoxStyle}" TextChanged="TextChangedAllowNumericOnly"/>
+                <TextBox x:Name="TextBoxMaxProgress" Margin="0,135,0,0" IsReadOnly="True" Style="{StaticResource TextBoxStyle}" TextChanged="TextChangedAllowNumericOnly"/>
                 <Label Content="Max Quality:" Margin="1,160,0,0" Style="{StaticResource LabelStyle}" />
-                <TextBox x:Name="TextBoxMaxQuality" Margin="0,160,0,0" Style="{StaticResource TextBoxStyle}" TextChanged="TextChangedAllowNumericOnly"/>
+                <TextBox x:Name="TextBoxMaxQuality" Margin="0,160,0,0" IsReadOnly="True" Style="{StaticResource TextBoxStyle}" TextChanged="TextChangedAllowNumericOnly"/>
+                <Button x:Name="ButtonSelectRecipe" Content="Select..." Margin="0,10,0,0" VerticalAlignment="Top" Height="25" Grid.Column="1" Click="ButtonSelectRecipe_Click"/>
             </Grid>
         </GroupBox>
-        <ListView HorizontalAlignment="Left" Height="306" Margin="271,56,0,0" VerticalAlignment="Top" Width="204">
-            <ListView.View>
-                <GridView>
-                    <GridViewColumn Width="50" Header="Id" />
-                    <GridViewColumn Width="150" Header="Name" />
-                </GridView>
-            </ListView.View>
-        </ListView>
-        <TextBox x:Name="TextBoxSearchRecipe" HorizontalAlignment="Left" Height="23" Margin="271,28,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="204" FontFamily="Consolas"/>
+        <Image x:Name="img" HorizontalAlignment="Left" Height="100" Margin="582,141,0,0" VerticalAlignment="Top" Width="100"/>
+
+        <StatusBar Height="30" VerticalAlignment="Bottom" FontFamily="Consolas">
+            <StatusBarItem VerticalContentAlignment="Stretch">
+                <ProgressBar x:Name="ProgressBarStatus" Minimum="0" Maximum="100" Value="0" Width="100" />
+            </StatusBarItem>
+            <StatusBarItem VerticalContentAlignment="Stretch">
+                <Label x:Name="LabelStatus" Content="Max Quality" FontFamily="Consolas" />
+            </StatusBarItem>
+        </StatusBar>
+
+
 
     </Grid>
 </Window>

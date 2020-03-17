@@ -56,10 +56,17 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
-    <Compile Include="Converters\ImageToBitmapSourceConverter.cs" />
+    <Compile Include="Converters\BitmapSourceExtentions.cs" />
+    <Compile Include="GUI\Windows\RecipeSelectionWindow.xaml.cs">
+      <DependentUpon>RecipeSelectionWindow.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Stream\DataStream.cs" />
     <Compile Include="Types\GameData\ItemInfo.cs" />
     <Compile Include="Types\GameData\RecipeInfo.cs" />
+    <Page Include="GUI\Windows\RecipeSelectionWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>

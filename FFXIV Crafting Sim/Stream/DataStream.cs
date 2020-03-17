@@ -1,9 +1,11 @@
-﻿using System;
+﻿using FFXIV_Crafting_Sim.Converters;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Media.Imaging;
 
 namespace FFXIV_Crafting_Sim.Stream
 {
@@ -61,7 +63,7 @@ namespace FFXIV_Crafting_Sim.Stream
             return BitConverter.ToInt32(ReadBytes(4), 0);
         }
 
-        public void WriteUInt(ushort value)
+        public void WriteUInt(uint value)
         {
             WriteBytes(BitConverter.GetBytes(value));
         }
@@ -69,6 +71,37 @@ namespace FFXIV_Crafting_Sim.Stream
         public uint ReadUInt()
         {
             return BitConverter.ToUInt32(ReadBytes(4), 0);
+        }
+
+        public string ReadString()
+        {
+            return Encoding.UTF8.GetString(ReadBytes(ReadUShort()));
+        }
+
+        public void WriteString(string value)
+        {
+            byte[] data = Encoding.UTF8.GetBytes(value);
+            WriteUShort((ushort)data.Length);
+            WriteBytes(data);
+        }
+
+        public void WriteBitmapSource(BitmapSource value)
+        {
+            if (value == null)
+            {
+                WriteInt(0);
+                return;
+            }
+            byte[] data = value.GetBytes();
+            WriteInt(data.Length);
+            WriteBytes(data);
+        }
+
+        public BitmapSource ReadBitmapSource()
+        {
+            int size = ReadInt();
+            if (size == 0) return null;
+            return BitmapSourceExtentions.FromBytes(ReadBytes(size));
         }
 
         public byte[] GetBytes()
