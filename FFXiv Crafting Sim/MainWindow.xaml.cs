@@ -1,5 +1,6 @@
 ﻿using FFXIV_Crafting_Sim.Converters;
 using FFXIV_Crafting_Sim.GUI.Windows;
+using FFXIV_Crafting_Sim.Types.GameData;
 using SaintCoinach;
 using SaintCoinach.Xiv;
 using System;
@@ -79,10 +80,21 @@ namespace FFXIV_Crafting_Sim
             
             if (window.ShowDialog() == true)
             {
-                
+                LoadRecipe(window.SelectedRecipe);
             }
 
             Debugger.Log(0, "", "Selected Recipe: " + (window.SelectedRecipe != null ? window.SelectedRecipe.Name : "None") + "\r\n");
+        }
+
+        public void LoadRecipe(RecipeInfo recipeInfo)
+        {
+            ButtonSelectRecipe.Content = recipeInfo.Name;
+            TextBoxRecipeLevel.Text = recipeInfo.Level.ToString();
+            TextBoxSuggestedCraftsmanship.Text = recipeInfo.RequiredCraftsmanship.ToString();
+            TextBoxSuggestedControl.Text = recipeInfo.RequiredControl.ToString();
+            TextBoxDurability.Text = recipeInfo.Durability.ToString();
+            TextBoxMaxProgress.Text = recipeInfo.MaxProgress.ToString();
+            TextBoxMaxQuality.Text = recipeInfo.MaxQuality.ToString();
         }
     }
 }

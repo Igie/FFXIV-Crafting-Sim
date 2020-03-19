@@ -11,6 +11,7 @@ using System.Windows;
 using System.Windows.Data;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using System.Windows.Threading;
 
 namespace FFXIV_Crafting_Sim.Converters
 {
@@ -28,11 +29,15 @@ namespace FFXIV_Crafting_Sim.Converters
 
         public static byte[] GetBytes(this BitmapSource source)
         {
-            var encoder = new PngBitmapEncoder();
-            var frame = BitmapFrame.Create(source);
-            encoder.Frames.Add(frame);
             var stream = new MemoryStream();
-            encoder.Save(stream);
+            Dispatcher.CurrentDispatcher.Invoke(() =>
+            {
+                var encoder = new PngBitmapEncoder();
+                var frame = BitmapFrame.Create(source);
+                encoder.Frames.Add(frame);
+                
+                encoder.Save(stream);
+            });
             return stream.ToArray();
         }
 
