@@ -23,8 +23,11 @@ namespace FFXIV_Crafting_Sim
         public static Dictionary<int, ItemInfo> Items { get; private set; }
         public static Dictionary<string, ActionInfo> Actions { get; private set; }
 
+        public static List<LevelDifferenceInfo> LevelDifferences { get; private set; }
         public static Task InitTask { get; private set; }
         public static Task ReloadTask { get; private set; }
+
+        public static event System.Action Loaded = delegate { };
 
         public static void Init(MainWindow window)
         {
@@ -37,6 +40,8 @@ namespace FFXIV_Crafting_Sim
                     ReadRecipes();
                     ReadItems();
                     ReadActions();
+                    ReadLevelDifferences();
+                    Loaded();
                 });
         }
 
@@ -50,6 +55,8 @@ namespace FFXIV_Crafting_Sim
                         ReadRecipes(true);
                         ReadItems(true);
                         ReadActions(true);
+                        ReadLevelDifferences(true);
+                        Loaded();
                     });
         }
 
@@ -106,8 +113,8 @@ namespace FFXIV_Crafting_Sim
                             Name = value.ResultItem.Name,
                             Level = recipeLevelTable.Key,
                             ClassJob = (ClassJobInfo)value.ClassJob.Key,
-                            RequiredCraftsmanship = value.RequiredCraftsmanship,
-                            RequiredControl = value.RequiredControl,
+                            RequiredCraftsmanship = recipeLevelTable.SuggestedCraftsmanship,
+                            RequiredControl = recipeLevelTable.SuggestedControl,
                             Durability = recipeLevelTable.Durability * value.DurabilityFactor / 100,
                             MaxProgress = recipeLevelTable.Difficulty * value.DifficultyFactor / 100,
                             MaxQuality = recipeLevelTable.Quality * value.QualityFactor / 100
@@ -344,6 +351,138 @@ namespace FFXIV_Crafting_Sim
             File.WriteAllBytes("Actions.db", s.GetBytes());
             s.Flush();
             s.Close();
+        }
+
+        private static void ReadLevelDifferences(bool deleteCurrent = false)
+        {
+            if (deleteCurrent && File.Exists("LevelDifferences.db"))
+                File.Delete("LevelDifferences.db");
+
+            if (File.Exists("LevelDifferences.db"))
+            {
+                SetStatus("Reading LevelDifferences from LevelDifferences.db...", 0);
+                DataStream s = new DataStream(File.ReadAllBytes("LevelDifferences.db"));
+                ushort length = s.ReadUShort();
+                LevelDifferences = new List<LevelDifferenceInfo>(length);
+                SetStatus(null, 0, 0, length);
+                for (ushort i = 0; i < length; i++)
+                {
+                    LevelDifferenceInfo info = new LevelDifferenceInfo
+                    {
+                        Difference = s.ReadShort(),
+                        ProgressFactor = s.ReadShort(),
+                        QualityFactor = s.ReadShort()
+                    };
+                    LevelDifferences.Add(info);
+                    if (i % 100 == 0)
+                        SetStatus(null, i);
+                }
+                SetStatus(null, length);
+                s.Flush();
+                s.Close();
+            }
+            else
+            {
+                var sheet = Game.GameData.GetSheet<CraftLevelDifference>();
+                SetStatus("Reading LevelDifferences from sheets...", 0, 0, sheet.Count());
+                int count = sheet.Count();
+                int[] keys = sheet.Keys.ToArray();
+                LevelDifferences = new List<LevelDifferenceInfo>(count);
+                for (int i = 0; i < count; i++)
+                {
+                    var value = sheet[keys[i]];
+                    LevelDifferenceInfo info = new LevelDifferenceInfo
+                    {
+                        Difference = (short)value.Difference,
+                        ProgressFactor = (short)value.ProgressFactor,
+                        QualityFactor = (short)value.QualityFactor
+                    };
+
+                    LevelDifferences.Add(info);
+
+
+                    if (i % 100 == 0)
+                        SetStatus(null, i);
+                }
+
+                SetStatus(null, count);
+
+                WriteLevelDifferences();
+            }
+        }
+
+        private static void WriteLevelDifferences()
+        {
+            SetStatus("Writing LevelDifferences to LevelDifferences.db...", 0, 0, LevelDifferences.Count);
+            DataStream s = new DataStream();
+            s.WriteUShort((ushort)LevelDifferences.Count);
+            for (int i = 0; i < LevelDifferences.Count; i++)
+            {
+                var value = LevelDifferences[i];
+                s.WriteShort(value.Difference);
+                s.WriteShort(value.ProgressFactor);
+                s.WriteShort(value.QualityFactor);
+
+                if (i % 100 == 0)
+                    SetStatus(null, i);
+            }
+            SetStatus(null, LevelDifferences.Count);
+
+            File.WriteAllBytes("LevelDifferences.db", s.GetBytes());
+            s.Flush();
+            s.Close();
+        }
+
+        public static int GetPlayerLevel(int level)
+        {
+            switch (level)
+            {
+                case 51: return 120;
+                case 52: return 125;
+                case 53: return 130;
+                case 54: return 133;
+                case 55: return 136;
+                case 56: return 139;
+                case 57: return 142;
+                case 58: return 145;
+                case 59: return 148;
+                case 60: return 150;
+                case 61: return 260;
+                case 62: return 265;
+                case 63: return 270;
+                case 64: return 273;
+                case 65: return 276;
+                case 66: return 279;
+                case 67: return 282;
+                case 68: return 285;
+                case 69: return 288;
+                case 70: return 290;
+                case 71: return 390;
+                case 72: return 395;
+                case 73: return 400;
+                case 74: return 403;
+                case 75: return 406;
+                case 76: return 409;
+                case 77: return 412;
+                case 78: return 415;
+                case 79: return 418;
+                case 80: return 420;
+            }
+
+            return level;
+        }
+
+        public static LevelDifferenceInfo GetCraftingLevelDifference(int levelDifference)
+        {
+            if (levelDifference <= LevelDifferences[0].Difference)
+                return LevelDifferences[0];
+            if (levelDifference >= LevelDifferences[LevelDifferences.Count - 1].Difference)
+                return LevelDifferences[LevelDifferences.Count - 1];
+            for (int i = 1; i < LevelDifferences.Count - 2; i++)
+                if (LevelDifferences[i].Difference == levelDifference)
+                    return LevelDifferences[i];
+
+            throw new Exception();
         }
 
         public static void SetStatus(string status = null, double? value = null, double? min = null, double? max = null)

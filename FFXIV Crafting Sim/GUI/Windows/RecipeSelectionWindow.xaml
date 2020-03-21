@@ -7,7 +7,7 @@
         mc:Ignorable="d"
         Title="Select Recipe" Height="400" Width="405" WindowStyle="ToolWindow" FontFamily="Consolas" Loaded="Window_Loaded">
     <Grid>
-        <TextBox x:Name="TextBoxSearchString" Height="23" TextWrapping="NoWrap" Text="" VerticalAlignment="Top" TextChanged="SearchTextChanged"/>
+        <TextBox x:Name="TextBoxSearchString" Padding="4,4" Height="23" TextWrapping="NoWrap" VerticalAlignment="Top" TextChanged="SearchTextChanged"/>
         <ListView x:Name="ListViewRecipes" Margin="0,23,0,0" MouseDoubleClick="MouseDoubleClickRecipe">
             <ListView.View>
                 <GridView>

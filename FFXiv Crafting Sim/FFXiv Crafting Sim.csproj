@@ -34,6 +34,28 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x86'">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>bin\x86\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <DebugType>full</DebugType>
+    <PlatformTarget>x86</PlatformTarget>
+    <LangVersion>7.3</LangVersion>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+    <Prefer32Bit>true</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x86'">
+    <OutputPath>bin\x86\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <Optimize>true</Optimize>
+    <DebugType>pdbonly</DebugType>
+    <PlatformTarget>x86</PlatformTarget>
+    <LangVersion>7.3</LangVersion>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+    <Prefer32Bit>true</Prefer32Bit>
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Data" />
@@ -56,13 +78,22 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="Actions\BasicSynthesis.cs" />
+    <Compile Include="Actions\BasicTouch.cs" />
+    <Compile Include="Actions\Buffs\CraftingBuff.cs" />
+    <Compile Include="Actions\CraftingAction.cs" />
     <Compile Include="Converters\BitmapSourceExtentions.cs" />
+    <Compile Include="Converters\CraftActionToImageConverter.cs" />
+    <Compile Include="CraftingSim.cs" />
+    <Compile Include="GUI\CraftingActionContainer.cs" />
+    <Compile Include="GUI\CraftingBuffContainer.cs" />
     <Compile Include="GUI\Windows\RecipeSelectionWindow.xaml.cs">
       <DependentUpon>RecipeSelectionWindow.xaml</DependentUpon>
     </Compile>
     <Compile Include="Stream\DataStream.cs" />
     <Compile Include="Types\GameData\ActionInfo.cs" />
     <Compile Include="Types\GameData\ItemInfo.cs" />
+    <Compile Include="Types\GameData\LevelDifferenceInfo.cs" />
     <Compile Include="Types\GameData\RecipeInfo.cs" />
     <Page Include="GUI\Windows\RecipeSelectionWindow.xaml">
       <SubType>Designer</SubType>
@@ -114,5 +145,6 @@
       <Name>SaintCoinach</Name>
     </ProjectReference>
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

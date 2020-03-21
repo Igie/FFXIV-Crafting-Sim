@@ -53,10 +53,10 @@ namespace FFXIV_Crafting_Sim.GUI.Windows
         {
             RecipeInfo info = (item as RecipeInfo);
 
-            string[] args = TextBoxSearchString.Text.Split(' ');
+            string[] args = TextBoxSearchString.Text.ToLower().Split(' ');
             if (String.IsNullOrEmpty(TextBoxSearchString.Text))
                 return true;
-            string s = info.SearchString;
+            string s = info.SearchString.ToLower();
            foreach(var arg in args)
             {
                 if (s.Contains(arg))
