@@ -2,6 +2,7 @@
 using FFXIV_Crafting_Sim.Converters;
 using FFXIV_Crafting_Sim.GUI;
 using FFXIV_Crafting_Sim.GUI.Windows;
+using FFXIV_Crafting_Sim.Solving;
 using FFXIV_Crafting_Sim.Stream;
 using FFXIV_Crafting_Sim.Types.GameData;
 using SaintCoinach;
@@ -53,48 +54,49 @@ namespace FFXIV_Crafting_Sim
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
             Sim = new CraftingSim();
+            Sim.FinishedStep += Sim_FinishedStep;
             Sim.FinishedExecution += Sim_FinishedExecution;
 
             G.Loaded += G_Loaded;
             G.Init(this);
         }
+
+        
+
         private void G_Loaded()
         {
-            Dispatcher.Invoke(() =>
+
+            if (File.Exists("Settings.db"))
             {
+                DataStream s = new DataStream(File.ReadAllBytes("Settings.db"));
+                int recipeId = s.ReadInt();
 
-                if (ListViewActions.Items.Count > 0)
-                    ListViewActions.Items.Clear();
 
-                if (File.Exists("Settings.db"))
+                Dispatcher.Invoke(() =>
                 {
-                    DataStream s = new DataStream(File.ReadAllBytes("Settings.db"));
-                    int recipeId = s.ReadInt();
-
-
                     TextBoxCrafterLevel.Text = s.ReadInt().ToString();
                     TextBoxCrafterCraftsmanship.Text = s.ReadInt().ToString();
                     TextBoxCrafterControl.Text = s.ReadInt().ToString();
                     TextBoxCrafterMaxCP.Text = s.ReadInt().ToString();
-
-                    List<CraftingAction> actions = new List<CraftingAction>();
-                    while (s.Position < s.Length)
-                    {
-                        actions.Add(CraftingAction.CraftingActions[s.ReadInt()]);
-                    }
-
-                    PlayerStatsFromTextToSim();
-                    LoadRecipe(G.Recipes.FirstOrDefault(x => x.Id == recipeId));
-
-                    Sim.AddActions(actions);
-                    s.Flush();
-                    s.Close();
+                });
+                List<CraftingAction> actions = new List<CraftingAction>();
+                while (s.Position < s.Length)
+                {
+                    actions.Add(CraftingAction.CraftingActions[s.ReadInt()]);
                 }
-            });
 
-            G.Loaded -= G_Loaded;
+                PlayerStatsFromTextToSim();
+                LoadRecipe(G.Recipes.FirstOrDefault(x => x.Id == recipeId));
+
+                Sim.AddActions(actions);
+                s.Flush();
+                s.Close();
+            }
+
+
+            //G.Loaded -= G_Loaded;
         }
-        
+
 
         private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
@@ -146,7 +148,7 @@ namespace FFXIV_Crafting_Sim
         private void ButtonSelectRecipe_Click(object sender, RoutedEventArgs e)
         {
             RecipeSelectionWindow window = new RecipeSelectionWindow();
-            
+
             if (window.ShowDialog() == true)
             {
                 LoadRecipe(window.SelectedRecipe);
@@ -154,10 +156,46 @@ namespace FFXIV_Crafting_Sim
 
             Debugger.Log(0, "", "Selected Recipe: " + (window.SelectedRecipe != null ? window.SelectedRecipe.Name : "None") + "\r\n");
         }
+        private List<CraftingActionContainer> CurrentActions { get; set; } = new List<CraftingActionContainer>();
+        private int OldProgress { get; set; }
+        private int OldQuality { get; set; }
+
+        private void Sim_FinishedStep(CraftingSim sim, int index)
+        {
+            if (index == 0)
+            {
+                if (CurrentActions != null)
+                {
+                    CurrentActions.ForEach(x => x.Dispose());
+                    CurrentActions.Clear();
+                }
+                CurrentActions = new List<CraftingActionContainer>();
+                OldProgress = 0;
+                OldQuality = 0;
+            }
+            var currentAction = sim.CraftingActions[index];
+            CraftingActionContainer container = new CraftingActionContainer(G.Actions[currentAction.Name].Images[sim.CurrentRecipe.ClassJob], currentAction);
+
+            container.ProgressIncreased = sim.CurrentProgress - OldProgress;
+            container.QualityIncreased = sim.CurrentQuality - OldQuality;
+            OldProgress = sim.CurrentProgress;
+            OldQuality = sim.CurrentQuality;
+            CurrentActions.Add(container);
+        }
 
         private void Sim_FinishedExecution(CraftingSim sim)
         {
-            Dispatcher.Invoke(() => ListViewActions.ItemsSource = sim.GetCraftingActions().Select(x => new CraftingActionContainer(G.Actions[x.Name].Images[sim.CurrentRecipe.ClassJob], x)).ToArray());
+
+            Dispatcher.Invoke(() =>
+            {
+                if (ListViewActions.ItemsSource != null)
+                    (ListViewActions.ItemsSource as List<CraftingActionContainer>).ForEach(x => x.Dispose());
+                ListViewActions.ItemsSource = CurrentActions.ToList();
+
+                if (ListViewCraftingBuffs.ItemsSource != null)
+                    (ListViewCraftingBuffs.ItemsSource as List<CraftingBuffContainer>).ForEach(x => x.Source = null);
+                ListViewCraftingBuffs.ItemsSource = sim.CraftingBuffs.Select(x => new CraftingBuffContainer(G.Actions[x.Name].Images[sim.CurrentRecipe.ClassJob], x)).ToList();
+            }); 
             UpdateCraftingText();
         }
 
@@ -174,9 +212,6 @@ namespace FFXIV_Crafting_Sim
                 TextBoxMaxQuality.Text = recipeInfo.MaxQuality.ToString();
             });
 
-
-            
-
             Dispatcher.Invoke(() =>
             {
                 ProgressBarProgress.Minimum = 0;
@@ -186,7 +221,7 @@ namespace FFXIV_Crafting_Sim
                 ProgressBarQuality.Minimum = 0;
                 ProgressBarQuality.Maximum = recipeInfo.MaxQuality;
                 ProgressBarQuality.Value = 0;
-
+                ListViewActions.ItemsSource = null;
                 Sim.SetRecipe(recipeInfo);
 
                 var availableActions = CraftingAction.CraftingActions.Values.Select(x => new CraftingActionContainer(G.Actions[x.Name].Images[recipeInfo.ClassJob], x)).ToArray();
@@ -233,6 +268,7 @@ namespace FFXIV_Crafting_Sim
                 ProgressBarProgress.Value = Sim.CurrentProgress;
                 LabelQuality.Content = $"{Sim.CurrentQuality}/{Sim.CurrentRecipe.MaxQuality} ({Sim.GetQualityIncrease(1)} at 100%)";
                 ProgressBarQuality.Value = Sim.CurrentQuality;
+                LabelScore.Content = "Score: " + Sim.Score;
             });
         }
 
@@ -240,7 +276,10 @@ namespace FFXIV_Crafting_Sim
         {
             if (ListViewActions.SelectedIndex >= 0)
             {
+                CurrentActions?.Clear();
                 Sim.RemoveActionAt(ListViewActions.SelectedIndex);
+
+                   
             }
         }
 
@@ -250,6 +289,44 @@ namespace FFXIV_Crafting_Sim
             CraftingActionContainer item = ListViewAvailable.SelectedItem as CraftingActionContainer;
             if (item != null)
                 Sim.AddActions(item.Action);
+
+        }
+
+        private void ButtonFindBest_Click(object sender, RoutedEventArgs e)
+        {
+            CraftingActionSequence seq = new CraftingActionSequence();
+
+            PossibleCraftingAction first = CraftingAction.CraftingActions.Where(x => x.Value.AsFirstActionOnly).Select(x => x.Value.Id).ToArray();
+            PossibleCraftingAction nonFirst = CraftingAction.CraftingActions.Where(x => !x.Value.AsFirstActionOnly).Select(x => x.Value.Id).ToArray();
+
+
+            seq.AddPossibleAction(first);
+            for (int i = 0; i < 10; i++)
+                seq.AddPossibleAction(nonFirst);
+
+            int possibilities = seq.GetPossibilities();
+
+            int[][] actions = seq.PossibleIds.Select(x => x.Ids.ToArray()).ToArray();
+            CraftingAction[][] ac = seq.PossibleIds.Select(x => x.Ids.Select(xx => CraftingAction.CraftingActions[xx]).ToArray()).ToArray();
+            ArrayCounter<CraftingAction> counter = new ArrayCounter<CraftingAction>(ac);
+            Sim.RemoveActions();
+            Sim.AddActions(counter.Current);
+            double bestScore = Sim.Score;
+            var currentActions = counter.Current;
+            Task.Run(() =>
+            {
+                do
+                {
+                    Sim.RemoveActions();
+                    Sim.AddActions(counter.Current);
+                    double score = Sim.Score;
+                    if (bestScore < score)
+                    {
+                        bestScore = score;
+                        currentActions = counter.Current;
+                    }
+                } while (counter.Increase());
+            });
 
         }
     }

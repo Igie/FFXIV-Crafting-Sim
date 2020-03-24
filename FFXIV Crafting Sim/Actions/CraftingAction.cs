@@ -12,6 +12,7 @@ namespace FFXIV_Crafting_Sim.Actions
         Success,
         CraftCompleted,
         NeedsBuff,
+        NeedsNoBuff,
         NotEnoughDurability,
         NotEnoughCP,
         FirstActionOnly
@@ -24,6 +25,23 @@ namespace FFXIV_Crafting_Sim.Actions
             CraftingActions = new Dictionary<int, CraftingAction>();
             CraftingActions.Add(1, new BasicSynthesis());
             CraftingActions.Add(2, new BasicTouch());
+            CraftingActions.Add(3, new MastersMend());
+            CraftingActions.Add(4, new InnerQuiet());
+            CraftingActions.Add(5, new WasteNot());
+            CraftingActions.Add(6, new Veneration());
+            CraftingActions.Add(7, new StandardTouch());
+            CraftingActions.Add(8, new GreatStrides());
+            CraftingActions.Add(9, new Innovation());
+            CraftingActions.Add(10, new WasteNotII());
+            CraftingActions.Add(11, new ByregotsBlessing());
+            CraftingActions.Add(12, new MuscleMemory());
+            CraftingActions.Add(13, new CarefulSynthesis());
+            CraftingActions.Add(14, new Manipulation());
+            CraftingActions.Add(15, new PrudentTouch());
+            CraftingActions.Add(16, new Reflect());
+            CraftingActions.Add(17, new PreparatoryTouch());
+            CraftingActions.Add(18, new Groundwork());
+            CraftingActions.Add(19, new DelicateSynthesis());
         }
 
         public static Dictionary<int, CraftingAction> CraftingActions { get; private set; }
@@ -95,7 +113,7 @@ namespace FFXIV_Crafting_Sim.Actions
         {
             if (DurabilityCost <= 0)
                 return DurabilityCost;
-            else return DurabilityCost;
+            else return sim.WasteNotBuff == null ? DurabilityCost : DurabilityCost / 2;
 
             //waste not check
         }
@@ -103,7 +121,11 @@ namespace FFXIV_Crafting_Sim.Actions
         public virtual void IncreaseProgress(CraftingSim sim)
         {
             if (IncreasesProgress)
+            {  
                 sim.CurrentProgress += sim.GetProgressIncrease(GetEfficiency(sim));
+                if (sim.MuscleMemoryBuff != null)
+                    sim.MuscleMemoryBuff.NeedsRemove = true;
+            }
         }
 
         public virtual void IncreaseQuality(CraftingSim sim)
@@ -111,11 +133,19 @@ namespace FFXIV_Crafting_Sim.Actions
             if (IncreasesQuality)
             {
                 sim.CurrentQuality += sim.GetQualityIncrease(GetEfficiency(sim));
-                //inner quiet?
+                if (sim.InnerQuietBuff != null)
+                {
+                    sim.InnerQuietBuff.Stack++;
+                    if (sim.InnerQuietBuff.Stack > 11)
+                        sim.InnerQuietBuff.Stack = 11;
+                }
+
+                if (sim.GreatStridesBuff != null)
+                    sim.GreatStridesBuff.NeedsRemove = true;
             }
         }
 
-        public virtual CraftingBuff GetBuff()
+        public virtual void AddBuff(CraftingSim sim)
         {
             throw new NotImplementedException();
         }

@@ -78,10 +78,34 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="Actions\DelicateSynthesis.cs" />
+    <Compile Include="Actions\Groundwork.cs" />
+    <Compile Include="Actions\PreparatoryTouch.cs" />
+    <Compile Include="Actions\Reflect.cs" />
+    <Compile Include="Actions\PrudentTouch.cs" />
+    <Compile Include="Actions\Buffs\ManipulationBuff.cs" />
+    <Compile Include="Actions\CarefulSynthesis.cs" />
+    <Compile Include="Actions\Buffs\MuscleMemoryBuff.cs" />
+    <Compile Include="Actions\Manipulation.cs" />
+    <Compile Include="Actions\MuscleMemory.cs" />
     <Compile Include="Actions\BasicSynthesis.cs" />
+    <Compile Include="Actions\ByregotsBlessing.cs" />
+    <Compile Include="Actions\Buffs\GreatStridesBuff.cs" />
+    <Compile Include="Actions\Buffs\InnovationBuff.cs" />
+    <Compile Include="Actions\StandardTouch.cs" />
     <Compile Include="Actions\BasicTouch.cs" />
     <Compile Include="Actions\Buffs\CraftingBuff.cs" />
+    <Compile Include="Actions\Buffs\VenerationBuff.cs" />
+    <Compile Include="Actions\Buffs\WasteNotBuff.cs" />
+    <Compile Include="Actions\Buffs\InnerQuietBuff.cs" />
     <Compile Include="Actions\CraftingAction.cs" />
+    <Compile Include="Actions\InnerQuiet.cs" />
+    <Compile Include="Actions\MastersMend.cs" />
+    <Compile Include="Actions\GreatStrides.cs" />
+    <Compile Include="Actions\Innovation.cs" />
+    <Compile Include="Actions\Veneration.cs" />
+    <Compile Include="Actions\WasteNotII.cs" />
+    <Compile Include="Actions\WasteNot.cs" />
     <Compile Include="Converters\BitmapSourceExtentions.cs" />
     <Compile Include="Converters\CraftActionToImageConverter.cs" />
     <Compile Include="CraftingSim.cs" />
@@ -90,6 +114,9 @@
     <Compile Include="GUI\Windows\RecipeSelectionWindow.xaml.cs">
       <DependentUpon>RecipeSelectionWindow.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Solving\ArrayCounter.cs" />
+    <Compile Include="Solving\CraftingActionSequence.cs" />
+    <Compile Include="Solving\PossibleCraftingAction.cs" />
     <Compile Include="Stream\DataStream.cs" />
     <Compile Include="Types\GameData\ActionInfo.cs" />
     <Compile Include="Types\GameData\ItemInfo.cs" />

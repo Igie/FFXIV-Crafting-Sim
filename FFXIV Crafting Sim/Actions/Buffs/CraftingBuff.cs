@@ -8,7 +8,25 @@ namespace FFXIV_Crafting_Sim.Actions.Buffs
 {
     public abstract class CraftingBuff
     {
-        public abstract string GetName();
-        public abstract int GetCurrentStack();
+        public virtual string Name { 
+            get
+            {
+                throw new NotImplementedException();
+            }
+        }
+        public int Stack { get; set; }
+        public bool NeedsRemove { get; set; } = false;
+
+        public virtual void Step(CraftingSim sim)
+        {
+        }
+
+        public virtual void Remove(CraftingSim sim)
+        {
+            if (sim.CraftingBuffs.Contains(this))
+                sim.CraftingBuffs.Remove(this);
+        }
+
+
     }
 }

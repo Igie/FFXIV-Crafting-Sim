@@ -48,6 +48,7 @@ namespace FFXIV_Crafting_Sim
         public static void ReloadDatabase()
         {
             if (ReloadTask == null || ReloadTask.IsCompleted)
+            {
                 ReloadTask = Task.Run(() =>
                     {
                         if (!InitTask.IsCompleted)
@@ -58,6 +59,7 @@ namespace FFXIV_Crafting_Sim
                         ReadLevelDifferences(true);
                         Loaded();
                     });
+            }
         }
 
         private static void ReadRecipes(bool deleteCurrent = false)
@@ -280,15 +282,16 @@ namespace FFXIV_Crafting_Sim
                 for (int i = 0; i < count; i++)
                 {
                     var value = sheet[keys[i]];
-                    //doh ability
-                    if (value.ActionCategory.Key == 7 && value.ClassJobCategory.Key == 33)
+                    if (value.ActionCategory.Key == 7 && value.ClassJob != null)
                     {
                         string name = value.Name;
-                        if (Actions.ContainsKey(name))
+                        if (!Actions.ContainsKey(name))
                             Actions[name] = new ActionInfo { Name = name, Level = value.ClassJobLevel };
                         Actions[name].Images[(ClassJobInfo)value.ClassJob.Key] = value.Icon.GetBitmapSource();
-                      
-                            
+                        Actions[name].Images[(ClassJobInfo)value.ClassJob.Key].Freeze();
+
+
+
 
                     }
                     if (i % 100 == 0)
@@ -310,7 +313,7 @@ namespace FFXIV_Crafting_Sim
                         if (!Actions.ContainsKey(value.Name))
                             Actions[name] = new ActionInfo { Name = name, Level = value.ClassJobLevel };
                         Actions[name].Images[(ClassJobInfo)value.ClassJob.Key] = value.Icon.GetBitmapSource();
-
+                        Actions[name].Images[(ClassJobInfo)value.ClassJob.Key].Freeze();
                     }
                     if (i % 100 == 0)
                         SetStatus(null, i);

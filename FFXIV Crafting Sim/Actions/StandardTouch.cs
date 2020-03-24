@@ -6,20 +6,20 @@ using System.Threading.Tasks;
 
 namespace FFXIV_Crafting_Sim.Actions
 {
-    public class BasicTouch : CraftingAction
+    public class StandardTouch : CraftingAction
     {
-        public override int Id => 2;
+        public override int Id => 7;
 
-        public override string Name => "Basic Touch";
+        public override string Name => "Standard Touch";
         public override bool IncreasesProgress => false;
         public override bool IncreasesQuality => true;
         protected override int DurabilityCost => 10;
-        public override int CPCost => 18;
+        public override int CPCost => 32;
         public override bool AsFirstActionOnly => false;
         public override bool AddsBuff => false;
         public override double GetEfficiency(CraftingSim sim)
         {
-            return 1d;
+            return 1.25d;
         }
     }
 }

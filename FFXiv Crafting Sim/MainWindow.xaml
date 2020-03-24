@@ -86,16 +86,16 @@
         <GroupBox Header="Crafting" Margin="271,23,10,35">
             <Grid>
                 <Label x:Name="LabelName" Content="" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top" Width="340" FontFamily="Consolas"/>
-                <Separator Height="2" Margin="0,34,0,0" VerticalAlignment="Top"/>
-                <Label x:Name="LabelDurability" Content="Durability: 40/40" HorizontalAlignment="Left" Margin="10,39,0,0" VerticalAlignment="Top" FontFamily="Consolas"/>
-                <Label x:Name="LabelCP" Content="CP: 541/541" HorizontalAlignment="Left" Margin="10,63,0,0" VerticalAlignment="Top" FontFamily="Consolas"/>
-                <Label Content="Progress:" HorizontalAlignment="Left" Margin="210,37,0,0" VerticalAlignment="Top" FontFamily="Consolas"/>
-                <Label Content="Quality:" HorizontalAlignment="Left" Margin="216,63,0,0" VerticalAlignment="Top" FontFamily="Consolas"/>
-                <ProgressBar x:Name="ProgressBarProgress" HorizontalAlignment="Left" Height="22" Margin="279,39,0,0" VerticalAlignment="Top" Width="100"/>
-                <ProgressBar x:Name="ProgressBarQuality" HorizontalAlignment="Left" Height="22" Margin="279,65,0,0" VerticalAlignment="Top" Width="100"/>
-                <Label x:Name="LabelProgress" Content="10000/10000" Margin="384,37,0,0" VerticalAlignment="Top" FontFamily="Consolas"/>
-                <Label x:Name="LabelQuality" Content="10000/10000" Margin="384,63,0,0" VerticalAlignment="Top" FontFamily="Consolas"/>
-                <Separator Height="2" Margin="0,92,0,0" VerticalAlignment="Top"/>
+                <Separator Height="2" Margin="0,43,0,0" VerticalAlignment="Top"/>
+                <Label x:Name="LabelDurability" Content="Durability: 40/40" HorizontalAlignment="Left" Margin="10,46,0,0" VerticalAlignment="Top" FontFamily="Consolas"/>
+                <Label x:Name="LabelCP" Content="CP: 541/541" HorizontalAlignment="Left" Margin="10,70,0,0" VerticalAlignment="Top" FontFamily="Consolas"/>
+                <Label Content="Progress:" HorizontalAlignment="Left" Margin="210,46,0,0" VerticalAlignment="Top" FontFamily="Consolas"/>
+                <Label Content="Quality:" HorizontalAlignment="Left" Margin="216,70,0,0" VerticalAlignment="Top" FontFamily="Consolas"/>
+                <ProgressBar x:Name="ProgressBarProgress" HorizontalAlignment="Left" Height="22" Margin="279,50,0,0" VerticalAlignment="Top" Width="100"/>
+                <ProgressBar x:Name="ProgressBarQuality" HorizontalAlignment="Left" Height="22" Margin="279,72,0,0" VerticalAlignment="Top" Width="100"/>
+                <Label x:Name="LabelProgress" Content="10000/10000" Margin="384,48,0,0" VerticalAlignment="Top" FontFamily="Consolas"/>
+                <Label x:Name="LabelQuality" Content="10000/10000" Margin="384,72,0,0" VerticalAlignment="Top" FontFamily="Consolas"/>
+                <Separator Height="2" Margin="0,99,0,0" VerticalAlignment="Top"/>
                 <Label Content="Actions:" HorizontalAlignment="Left" Margin="10,99,0,0" VerticalAlignment="Top" FontFamily="Consolas"/>
                 <ListView x:Name="ListViewActions" Height="83" Margin="0,123,0,0" VerticalAlignment="Top" FontFamily="Consolas" ScrollViewer.VerticalScrollBarVisibility="Disabled" MouseLeftButtonUp="ListViewActions_MouseLeftButtonUp">
                     <ListView.ItemsPanel>
@@ -105,18 +105,18 @@
                     </ListView.ItemsPanel>
                     <ListView.ItemTemplate>
                         <DataTemplate DataType="CraftingActionContainer">
-                            <Grid>
+                            <Grid Height="70">
                                 <Border BorderBrush="Black" Background="#FFD8D8D8" BorderThickness="1">
-                                    <Image Width="35" Height="60" Source ="{Binding Source}"/>
+                                    <Image Width="30" Height="30" Source ="{Binding Source}" Margin="0,25,0,0" VerticalAlignment="Top"/>
                                 </Border>
-                                <TextBlock Height="15" Margin="0" VerticalAlignment="Top" />
+                                <TextBlock Height="26" Margin="0" VerticalAlignment="Top" Text="{Binding Path=IncreaseString}" FontSize="11" FontFamily="Consolas" LineHeight="0" />
                                 <TextBlock Height="15" Margin="0" Padding="5,0" Text="{Binding Path=Action.CPCost}" VerticalAlignment="Bottom" />
                             </Grid>
                         </DataTemplate>
                     </ListView.ItemTemplate>
                 </ListView>
                 <Label Content="Available Actions:" HorizontalAlignment="Left" Margin="3,211,0,0" VerticalAlignment="Top" FontFamily="Consolas"/>
-                <ListView x:Name="ListViewAvailable" Margin="0,240,0,10" MouseLeftButtonUp="ListViewAvailable_MouseLeftButtonUp">
+                <ListView x:Name="ListViewAvailable" Margin="0,240,0,10" MouseLeftButtonUp="ListViewAvailable_MouseLeftButtonUp" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
                     <ListView.ItemsPanel>
                         <ItemsPanelTemplate>
                             <WrapPanel Orientation="Horizontal"/>
@@ -132,16 +132,29 @@
                         </DataTemplate>
                     </ListView.ItemTemplate>
                 </ListView>
-                <ListView Height="29" Margin="355,0,0,0" VerticalAlignment="Top">
+                <ListView x:Name="ListViewCraftingBuffs" Height="38" Margin="355,0,0,0" VerticalAlignment="Top" ScrollViewer.HorizontalScrollBarVisibility="Hidden" ScrollViewer.VerticalScrollBarVisibility="Hidden">
                     <ListView.ItemsPanel>
                         <ItemsPanelTemplate>
                             <StackPanel Orientation="Horizontal"/>
                         </ItemsPanelTemplate>
                     </ListView.ItemsPanel>
+                    <ListView.ItemTemplate>
+                        <DataTemplate DataType="CraftingBuffContainer">
+                            <Grid>
+                                <Border BorderBrush="Black" Background="#FFD8D8D8" BorderThickness="1">
+                                    <Image Width="20" Height="30" Source ="{Binding Source}"/>
+                                </Border>
+                                <TextBlock Height="12" Margin="0" Padding="2,0" Text="{Binding Path=Buff.Stack}" VerticalAlignment="Bottom" FontSize="10" FontFamily="Consolas" Foreground="#FFF9F9F9" Background="#CC232323" HorizontalAlignment="Left" Width="12" />
+                            </Grid>
+                        </DataTemplate>
+                    </ListView.ItemTemplate>
+
                 </ListView>
             </Grid>
 
         </GroupBox>
+        <Label x:Name="LabelScore" Content="Score:" HorizontalAlignment="Left" Margin="10,367,0,0" VerticalAlignment="Top" FontFamily="Consolas" />
+        <Button x:Name="ButtonFindBest" Content="Find Best" HorizontalAlignment="Left" Margin="10,391,0,0" VerticalAlignment="Top" Width="75" FontFamily="Consolas" Click="ButtonFindBest_Click"/>
 
 
 
