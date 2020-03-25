@@ -21,6 +21,7 @@
             <Setter Property="Padding" Value="2,6" />
             <Setter Property="BorderBrush" Value="#FFA6A6A6" />
             <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="HorizontalContentAlignment" Value="Left" />
         </Style>
         <Style x:Key="TextBoxStyle" TargetType="{x:Type TextBox}">
             <Setter Property="TextWrapping" Value="NoWrap" />
@@ -29,6 +30,7 @@
             <Setter Property="Grid.Column" Value="1" />
             <Setter Property="FontFamily" Value="Consolas" />
             <Setter Property="Height" Value="25" />
+            <Setter Property="HorizontalContentAlignment" Value="Left" />
         </Style>
     </Window.Resources>
     <Grid>
@@ -97,7 +99,7 @@
                 <Label x:Name="LabelQuality" Content="10000/10000" Margin="384,72,0,0" VerticalAlignment="Top" FontFamily="Consolas"/>
                 <Separator Height="2" Margin="0,99,0,0" VerticalAlignment="Top"/>
                 <Label Content="Actions:" HorizontalAlignment="Left" Margin="10,99,0,0" VerticalAlignment="Top" FontFamily="Consolas"/>
-                <ListView x:Name="ListViewActions" Height="83" Margin="0,123,0,0" VerticalAlignment="Top" FontFamily="Consolas" ScrollViewer.VerticalScrollBarVisibility="Disabled" MouseLeftButtonUp="ListViewActions_MouseLeftButtonUp">
+                <ListView x:Name="ListViewActions" Height="83" Margin="0,123,0,0" VerticalAlignment="Top" FontFamily="Consolas" ScrollViewer.VerticalScrollBarVisibility="Disabled" MouseLeftButtonUp="ListViewActions_MouseLeftButtonUp" HorizontalContentAlignment="Left" VerticalContentAlignment="Top">
                     <ListView.ItemsPanel>
                         <ItemsPanelTemplate>
                             <StackPanel Orientation="Horizontal"/>
@@ -116,7 +118,7 @@
                     </ListView.ItemTemplate>
                 </ListView>
                 <Label Content="Available Actions:" HorizontalAlignment="Left" Margin="3,211,0,0" VerticalAlignment="Top" FontFamily="Consolas"/>
-                <ListView x:Name="ListViewAvailable" Margin="0,240,0,10" MouseLeftButtonUp="ListViewAvailable_MouseLeftButtonUp" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                <ListView x:Name="ListViewAvailable" Margin="0,240,0,10" MouseLeftButtonUp="ListViewAvailable_MouseLeftButtonUp" ScrollViewer.HorizontalScrollBarVisibility="Disabled"  HorizontalContentAlignment="Left" VerticalContentAlignment="Top">
                     <ListView.ItemsPanel>
                         <ItemsPanelTemplate>
                             <WrapPanel Orientation="Horizontal"/>
@@ -132,7 +134,7 @@
                         </DataTemplate>
                     </ListView.ItemTemplate>
                 </ListView>
-                <ListView x:Name="ListViewCraftingBuffs" Height="38" Margin="355,0,0,0" VerticalAlignment="Top" ScrollViewer.HorizontalScrollBarVisibility="Hidden" ScrollViewer.VerticalScrollBarVisibility="Hidden">
+                <ListView x:Name="ListViewCraftingBuffs" Height="38" Margin="355,0,0,0" VerticalAlignment="Top" ScrollViewer.HorizontalScrollBarVisibility="Hidden" ScrollViewer.VerticalScrollBarVisibility="Hidden"  HorizontalContentAlignment="Left" VerticalContentAlignment="Top">
                     <ListView.ItemsPanel>
                         <ItemsPanelTemplate>
                             <StackPanel Orientation="Horizontal"/>
@@ -140,15 +142,14 @@
                     </ListView.ItemsPanel>
                     <ListView.ItemTemplate>
                         <DataTemplate DataType="CraftingBuffContainer">
-                            <Grid>
-                                <Border BorderBrush="Black" Background="#FFD8D8D8" BorderThickness="1">
-                                    <Image Width="20" Height="30" Source ="{Binding Source}"/>
+                            <Grid >
+                                <Border BorderBrush="Black" Background="#FFD8D8D8" BorderThickness="1" >
+                                    <Image Width="20" Height="30" Source ="{Binding Source}" />
                                 </Border>
                                 <TextBlock Height="12" Margin="0" Padding="2,0" Text="{Binding Path=Buff.Stack}" VerticalAlignment="Bottom" FontSize="10" FontFamily="Consolas" Foreground="#FFF9F9F9" Background="#CC232323" HorizontalAlignment="Left" Width="12" />
                             </Grid>
                         </DataTemplate>
                     </ListView.ItemTemplate>
-
                 </ListView>
             </Grid>
 

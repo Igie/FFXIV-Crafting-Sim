@@ -3,6 +3,7 @@ using FFXIV_Crafting_Sim.Actions.Buffs;
 using FFXIV_Crafting_Sim.Types.GameData;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -55,7 +56,20 @@ namespace FFXIV_Crafting_Sim
         public MuscleMemoryBuff MuscleMemoryBuff { get; set; }
         public ManipulationBuff ManipulationBuff { get; set; }
 
-        public int CraftingActionsLength { get; private set; }
+        private int _CraftingActionsLength;
+        public int CraftingActionsLength
+        {
+            get
+            {
+                return _CraftingActionsLength;
+            }
+            private set
+            {
+                _CraftingActionsLength = value;
+                if (value > MaxActions)
+                    Debugger.Break();
+            }
+        }
 
 
         public event Action<CraftingSim> FinishedExecution = delegate { };
@@ -66,6 +80,32 @@ namespace FFXIV_Crafting_Sim
             CraftingActions = new CraftingAction[MaxActions];
             CraftingActionsLength = 0;
             CraftingBuffs = new List<CraftingBuff>();
+        }
+
+        public CraftingSim Clone()
+        {
+            CraftingSim result = new CraftingSim();
+
+            result.Level = Level;
+            result.Craftsmanship = Craftsmanship;
+            result.Control = Control;
+            result.MaxCP = MaxCP;
+            result.SetRecipe(CurrentRecipe);
+            return result;
+        }
+
+        public void CopyTo(CraftingSim sim, bool copyActions = false)
+        {
+            sim.Level = Level;
+            sim.Craftsmanship = Craftsmanship;
+            sim.Control = Control;
+            sim.MaxCP = MaxCP;
+            sim.SetRecipe(CurrentRecipe);
+            if (copyActions)
+            {
+                sim.RemoveActions();
+                sim.AddActions(GetCraftingActions());
+            }
         }
 
         public void AddActions(IEnumerable<CraftingAction> actions)
@@ -79,7 +119,8 @@ namespace FFXIV_Crafting_Sim
                 return;
             for (int i = 0; i < actions.Length; i++)
                 CraftingActions[CraftingActionsLength++] = actions[i];
-
+            if (CraftingActionsLength > MaxActions)
+                Debugger.Break();
             ExectueActions();
         }
 
@@ -99,6 +140,8 @@ namespace FFXIV_Crafting_Sim
 
         public void RemoveActions()
         {
+            if (CraftingActionsLength > MaxActions)
+                Debugger.Break();
             for (int i = 0; i < CraftingActionsLength; i++)
                 CraftingActions[i] = null;
             CraftingActionsLength = 0;
@@ -147,6 +190,8 @@ namespace FFXIV_Crafting_Sim
             {
 
                 CraftingAction action = CraftingActions[i];
+                if (action == null)
+                    break;
                 if (action.Check(this, i) != CraftingActionResult.Success)
                 {
                     RemoveRedundantActions();

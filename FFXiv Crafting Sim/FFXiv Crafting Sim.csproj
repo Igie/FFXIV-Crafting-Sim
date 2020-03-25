@@ -116,7 +116,11 @@
     </Compile>
     <Compile Include="Solving\ArrayCounter.cs" />
     <Compile Include="Solving\CraftingActionSequence.cs" />
+    <Compile Include="Solving\GeneticAlgorithm\Chromosome.cs" />
+    <Compile Include="Solving\GeneticAlgorithm\GeneticUtils.cs" />
+    <Compile Include="Solving\GeneticAlgorithm\Population.cs" />
     <Compile Include="Solving\PossibleCraftingAction.cs" />
+    <Compile Include="Solving\Solver.cs" />
     <Compile Include="Stream\DataStream.cs" />
     <Compile Include="Types\GameData\ActionInfo.cs" />
     <Compile Include="Types\GameData\ItemInfo.cs" />

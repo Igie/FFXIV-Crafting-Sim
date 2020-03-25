@@ -23,6 +23,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using System.Windows.Threading;
 
 namespace FFXIV_Crafting_Sim
 {
@@ -32,6 +33,7 @@ namespace FFXIV_Crafting_Sim
     public partial class MainWindow : Window
     {
         private CraftingSim Sim { get; set; }
+        private Solver Solver { get; set; }
 
         public MainWindow()
         {
@@ -53,9 +55,16 @@ namespace FFXIV_Crafting_Sim
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
+            Dispatcher.UnhandledException += new DispatcherUnhandledExceptionEventHandler((object s, DispatcherUnhandledExceptionEventArgs ee) =>
+               {
+                   Debugger.Log(0, "Error", ee.ToString());
+               });
+
             Sim = new CraftingSim();
             Sim.FinishedStep += Sim_FinishedStep;
             Sim.FinishedExecution += Sim_FinishedExecution;
+
+            
 
             G.Loaded += G_Loaded;
             G.Init(this);
@@ -93,7 +102,12 @@ namespace FFXIV_Crafting_Sim
                 s.Close();
             }
 
-
+            if (Solver == null)
+            {
+                var actions = CraftingAction.CraftingActions.Select(x => (ushort)x.Key).ToList();
+                actions.Add(0);
+                Solver = new Solver(Sim, actions.ToArray(), 12);
+            }
             //G.Loaded -= G_Loaded;
         }
 
@@ -185,15 +199,22 @@ namespace FFXIV_Crafting_Sim
 
         private void Sim_FinishedExecution(CraftingSim sim)
         {
-
             Dispatcher.Invoke(() =>
             {
                 if (ListViewActions.ItemsSource != null)
-                    (ListViewActions.ItemsSource as List<CraftingActionContainer>).ForEach(x => x.Dispose());
+                {
+                    var list = (ListViewActions.ItemsSource as List<CraftingActionContainer>);
+                    for (int i = 0; i < list.Count; i++)
+                        list[i].Dispose();
+                }
                 ListViewActions.ItemsSource = CurrentActions.ToList();
 
                 if (ListViewCraftingBuffs.ItemsSource != null)
-                    (ListViewCraftingBuffs.ItemsSource as List<CraftingBuffContainer>).ForEach(x => x.Source = null);
+                {
+                    var list = (ListViewCraftingBuffs.ItemsSource as List<CraftingBuffContainer>);
+                    for (int i = 0; i < list.Count; i++)
+                        list[i].Source = null;
+                }
                 ListViewCraftingBuffs.ItemsSource = sim.CraftingBuffs.Select(x => new CraftingBuffContainer(G.Actions[x.Name].Images[sim.CurrentRecipe.ClassJob], x)).ToList();
             }); 
             UpdateCraftingText();
@@ -291,43 +312,13 @@ namespace FFXIV_Crafting_Sim
                 Sim.AddActions(item.Action);
 
         }
-
         private void ButtonFindBest_Click(object sender, RoutedEventArgs e)
         {
-            CraftingActionSequence seq = new CraftingActionSequence();
-
-            PossibleCraftingAction first = CraftingAction.CraftingActions.Where(x => x.Value.AsFirstActionOnly).Select(x => x.Value.Id).ToArray();
-            PossibleCraftingAction nonFirst = CraftingAction.CraftingActions.Where(x => !x.Value.AsFirstActionOnly).Select(x => x.Value.Id).ToArray();
-
-
-            seq.AddPossibleAction(first);
-            for (int i = 0; i < 10; i++)
-                seq.AddPossibleAction(nonFirst);
-
-            int possibilities = seq.GetPossibilities();
-
-            int[][] actions = seq.PossibleIds.Select(x => x.Ids.ToArray()).ToArray();
-            CraftingAction[][] ac = seq.PossibleIds.Select(x => x.Ids.Select(xx => CraftingAction.CraftingActions[xx]).ToArray()).ToArray();
-            ArrayCounter<CraftingAction> counter = new ArrayCounter<CraftingAction>(ac);
-            Sim.RemoveActions();
-            Sim.AddActions(counter.Current);
-            double bestScore = Sim.Score;
-            var currentActions = counter.Current;
-            Task.Run(() =>
-            {
-                do
-                {
-                    Sim.RemoveActions();
-                    Sim.AddActions(counter.Current);
-                    double score = Sim.Score;
-                    if (bestScore < score)
-                    {
-                        bestScore = score;
-                        currentActions = counter.Current;
-                    }
-                } while (counter.Increase());
-            });
-
+            if (Solver == null) return;
+            Solver.Continue = !Solver.Continue;
+            ButtonFindBest.Content = Solver.Continue ? "Stop" : "Find Best";
+            if (Solver.Continue)
+                Solver.Start();
         }
     }
 }
