@@ -1,0 +1,13 @@
+﻿<Application x:Class="FFXIV_Crafting_Sim.App"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:local="clr-namespace:FFXIVCraftingSim"
+             xmlns:utils="clr-namespace:FFXIVCraftingSim.Converters"
+             StartupUri="MainWindow.xaml">
+    <Application.Resources>
+        <Style TargetType="ListViewItem">
+            <Setter Property="HorizontalContentAlignment" Value="Left" />
+            <Setter Property="VerticalContentAlignment" Value="Center" />
+        </Style>
+    </Application.Resources>
+</Application>
