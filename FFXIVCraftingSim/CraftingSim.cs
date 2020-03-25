@@ -200,12 +200,14 @@ namespace FFXIVCraftingSim
                 }
                 Step++;
 
+             
+                action.IncreaseProgress(this);
+                action.IncreaseQuality(this);
+
                 CurrentDurability -= action.GetDurabilityCost(this);
                 if (CurrentDurability > CurrentRecipe.Durability)
                     CurrentDurability = CurrentRecipe.Durability;
                 CurrentCP -= action.CPCost;
-                action.IncreaseProgress(this);
-                action.IncreaseQuality(this);
 
                 foreach (var buff in CraftingBuffs)
                     buff.Step(this);
@@ -273,8 +275,10 @@ namespace FFXIVCraftingSim
                 if (quality > CurrentRecipe.MaxQuality)
                     quality = CurrentRecipe.MaxQuality;
                 result += quality / CurrentRecipe.MaxQuality * 10000;
-                result += (double)CurrentCP / MaxCP * 2;
-                result -= CraftingActionsLength * 100; 
+                for (int i = 0; i < CraftingActionsLength; i++)
+                {
+                    result -= CraftingActions[i].IsBuff ? 20 : 30;
+                }
                 return result; 
             }
         }

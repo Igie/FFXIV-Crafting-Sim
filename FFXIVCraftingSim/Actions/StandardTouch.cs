@@ -11,6 +11,7 @@ namespace FFXIVCraftingSim.Actions
         public override int Id => 7;
 
         public override string Name => "Standard Touch";
+        public override bool IsBuff => false;
         public override bool IncreasesProgress => false;
         public override bool IncreasesQuality => true;
         protected override int DurabilityCost => 10;

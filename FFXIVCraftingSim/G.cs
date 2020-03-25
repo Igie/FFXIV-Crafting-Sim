@@ -34,6 +34,9 @@ namespace FFXIVCraftingSim
             MainWindow = window;
             Game = new ARealmReversed(@"C:\Program Files (x86)\SquareEnix\FINAL FANTASY XIV - A Realm Reborn", SaintCoinach.Ex.Language.English);
 
+            var food = Game.GameData.GetSheet<Item>();
+            var hue = food.First(x => x.Name == "Blood Bouillabaisse");
+            var h = hue.ItemAction;
             if (InitTask == null || InitTask.IsCompleted)
                 InitTask = Task.Run(() =>
                 {

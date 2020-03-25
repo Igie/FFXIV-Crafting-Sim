@@ -12,6 +12,7 @@ namespace FFXIVCraftingSim.Actions
         public override int Id => 6;
 
         public override string Name => "Veneration";
+        public override bool IsBuff => true;
         public override bool IncreasesProgress => false;
         public override bool IncreasesQuality => false;
         protected override int DurabilityCost => 0;

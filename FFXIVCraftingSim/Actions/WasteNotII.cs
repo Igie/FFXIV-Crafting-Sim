@@ -12,6 +12,7 @@ namespace FFXIVCraftingSim.Actions
         public override int Id => 10;
 
         public override string Name => "Waste Not II";
+        public override bool IsBuff => true;
         public override bool IncreasesProgress => false;
         public override bool IncreasesQuality => false;
         protected override int DurabilityCost => 0;

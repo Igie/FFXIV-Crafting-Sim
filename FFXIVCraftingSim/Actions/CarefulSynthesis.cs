@@ -11,6 +11,7 @@ namespace FFXIVCraftingSim.Actions
         public override int Id => 13;
 
         public override string Name => "Careful Synthesis";
+        public override bool IsBuff => false;
         public override bool IncreasesProgress => true;
         public override bool IncreasesQuality => false;
         protected override int DurabilityCost => 10;

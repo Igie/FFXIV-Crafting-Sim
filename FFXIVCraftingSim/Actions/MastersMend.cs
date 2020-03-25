@@ -12,6 +12,7 @@ namespace FFXIVCraftingSim.Actions
         public override int Id => 3;
 
         public override string Name => "Master's Mend";
+        public override bool IsBuff => false;
         public override bool IncreasesProgress => false;
         public override bool IncreasesQuality => false;
         protected override int DurabilityCost => -30;

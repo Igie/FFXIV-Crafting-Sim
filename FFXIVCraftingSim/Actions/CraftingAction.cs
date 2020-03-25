@@ -55,6 +55,14 @@ namespace FFXIVCraftingSim.Actions
             get { throw new NotImplementedException(); }
         }
 
+        public virtual bool IsBuff
+        {
+            get
+            {
+                { throw new NotImplementedException(); }
+            }
+        }
+
         public virtual bool IncreasesProgress
         {
             get { throw new NotImplementedException(); }
