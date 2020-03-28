@@ -64,13 +64,13 @@ namespace FFXIVCraftingSim
             Sim.FinishedStep += Sim_FinishedStep;
             Sim.FinishedExecution += Sim_FinishedExecution;
 
-            
+
 
             G.Loaded += G_Loaded;
             G.Init(this);
         }
 
-        
+
 
         private void G_Loaded()
         {
@@ -216,7 +216,7 @@ namespace FFXIVCraftingSim
                         list[i].Source = null;
                 }
                 ListViewCraftingBuffs.ItemsSource = sim.CraftingBuffs.Select(x => new CraftingBuffContainer(G.Actions[x.Name].Images[sim.CurrentRecipe.ClassJob], x)).ToList();
-            }); 
+            });
             UpdateCraftingText();
         }
 
@@ -300,7 +300,7 @@ namespace FFXIVCraftingSim
                 CurrentActions?.Clear();
                 Sim.RemoveActionAt(ListViewActions.SelectedIndex);
 
-                   
+
             }
         }
 
@@ -319,6 +319,21 @@ namespace FFXIVCraftingSim
             ButtonFindBest.Content = Solver.Continue ? "Stop" : "Find Best";
             if (Solver.Continue)
                 Solver.Start();
+        }
+
+        private void CopyMacroClicked(object sender, RoutedEventArgs e)
+        {
+            if (Sim == null) return;
+
+            string text = "";
+            var actions = Sim.GetCraftingActions();
+            for (int i = 0; i < actions.Length; i++)
+            {
+                CraftingAction ac = actions[i];
+                text += $"/ac \"{ac.Name}\" <wait.{(ac.IsBuff ? 2 : 3)}>\r\n";
+            }
+            Clipboard.SetText(text);
+
         }
     }
 }

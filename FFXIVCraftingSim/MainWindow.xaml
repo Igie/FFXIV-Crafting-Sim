@@ -9,7 +9,8 @@
         xmlns:Actions="clr-namespace:FFXIVCraftingSim.Actions" 
         x:Class="FFXIVCraftingSim.MainWindow"
         mc:Ignorable="d"
-        Title="Crafting Simulator" Height="482" Width="1024" Loaded="Window_Loaded" Closing="Window_Closing">
+        Title="Crafting Simulator" Height="482" Width="1024" Loaded="Window_Loaded" Closing="Window_Closing"
+    >
     <Window.Resources>
         <Style x:Key="LabelStyle" TargetType="{x:Type Label}">
             <Setter Property="Height" Value="25"/>
@@ -34,6 +35,7 @@
     <Grid>
         <Menu Height="23" VerticalAlignment="Top">
             <MenuItem Header="Reload Database" Width="100" Height="23" Click="ReloadDatabaseClicked" />
+            <CheckBox x:Name="CheckboxTopmost" Content="Always on Top" IsChecked="{Binding Path=Topmost, RelativeSource={RelativeSource AncestorType={x:Type Window}}}" />
         </Menu>
         <GroupBox Header="Crafter Stats" HorizontalAlignment="Left" Height="133" Margin="0,23,0,0" VerticalAlignment="Top" FontFamily="Consolas" Width="266">
             <Grid>
@@ -97,7 +99,12 @@
                 <Label x:Name="LabelQuality" Content="10000/10000" Margin="384,72,0,0" VerticalAlignment="Top" FontFamily="Consolas"/>
                 <Separator Height="2" Margin="0,99,0,0" VerticalAlignment="Top"/>
                 <Label Content="Actions:" HorizontalAlignment="Left" Margin="10,99,0,0" VerticalAlignment="Top" FontFamily="Consolas"/>
-                <ListView x:Name="ListViewActions" Height="83" Margin="0,123,0,0" VerticalAlignment="Top" FontFamily="Consolas" ScrollViewer.VerticalScrollBarVisibility="Disabled" MouseLeftButtonUp="ListViewActions_MouseLeftButtonUp" HorizontalContentAlignment="Left" VerticalContentAlignment="Top">
+                <ListView x:Name="ListViewActions" Height="83" Margin="0,123,0,0" VerticalAlignment="Top" FontFamily="Consolas" ScrollViewer.VerticalScrollBarVisibility="Disabled" HorizontalContentAlignment="Left" VerticalContentAlignment="Top" MouseLeftButtonUp="ListViewActions_MouseLeftButtonUp" >
+                    <ListView.ContextMenu>
+                        <ContextMenu>
+                            <MenuItem Header="Copy Macro" Click="CopyMacroClicked"/>
+                        </ContextMenu>
+                    </ListView.ContextMenu>
                     <ListView.ItemsPanel>
                         <ItemsPanelTemplate>
                             <StackPanel Orientation="Horizontal"/>

@@ -191,8 +191,10 @@ namespace FFXIVCraftingSim
 
                 CraftingAction action = CraftingActions[i];
                 if (action == null)
+                {
                     break;
-                if (action.Check(this, i) != CraftingActionResult.Success)
+                }
+                if (action.Check(this, Step) != CraftingActionResult.Success)
                 {
                     RemoveRedundantActions();
                     FinishedExecution(this);
