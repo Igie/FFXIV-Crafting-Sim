@@ -12,7 +12,7 @@ namespace FFXIVCraftingSim
 {
     public class CraftingSim
     {
-        public const int MaxActions = 30;
+        public const int MaxActions = 40;
 
         private int level;
         public int Level
@@ -29,11 +29,54 @@ namespace FFXIVCraftingSim
                     LevelDifference = G.GetCraftingLevelDifference(ActualLevel - CurrentRecipe.Level);
             }
         }
+        public int BaseCraftsmanship { get; set; }
+        public int BaseControl { get; set; }
+        public int BaseMaxCP { get; set; }
+
         public int ActualLevel { get; private set; }
-        public int Craftsmanship { get; set; }
-        public int Control { get; set; }
+        public int Craftsmanship
+        {
+            get
+            {
+                return BaseCraftsmanship + CraftsmanshipBuff;
+            }
+            set
+            {
+                BaseCraftsmanship = value - CraftsmanshipBuff;
+            }
+        }
+        public int Control
+        {
+
+            get
+            {
+                return BaseControl + ControlBuff;
+            }
+            set
+            {
+                BaseControl = value - ControlBuff;
+            }
+
+        }
         public double ActualControl { get; set; }
-        public int MaxCP { get; set; }
+        public int MaxCP
+        {
+
+            get
+            {
+                return BaseMaxCP + MaxCPBuff;
+            }
+            set
+            {
+                BaseMaxCP = value - MaxCPBuff;
+            }
+
+        }
+
+        //food buffs
+        public int CraftsmanshipBuff { get; set; }
+        public int ControlBuff { get; set; }
+        public int MaxCPBuff { get; set; }
         
         public int Step { get; private set; }
         public int CurrentDurability { get; set; }
@@ -71,7 +114,6 @@ namespace FFXIVCraftingSim
             }
         }
 
-
         public event Action<CraftingSim> FinishedExecution = delegate { };
         public event Action<CraftingSim, int> FinishedStep = delegate { };
 
@@ -87,9 +129,12 @@ namespace FFXIVCraftingSim
             CraftingSim result = new CraftingSim();
 
             result.Level = Level;
-            result.Craftsmanship = Craftsmanship;
-            result.Control = Control;
-            result.MaxCP = MaxCP;
+            result.BaseCraftsmanship = BaseCraftsmanship;
+            result.BaseControl = BaseControl;
+            result.BaseMaxCP = BaseMaxCP;
+            result.CraftsmanshipBuff = CraftsmanshipBuff;
+            result.ControlBuff = ControlBuff;
+            result.MaxCPBuff = MaxCPBuff;
             if (CurrentRecipe != null)result.SetRecipe(CurrentRecipe);
             return result;
         }
@@ -97,9 +142,12 @@ namespace FFXIVCraftingSim
         public void CopyTo(CraftingSim sim, bool copyActions = false)
         {
             sim.Level = Level;
-            sim.Craftsmanship = Craftsmanship;
-            sim.Control = Control;
-            sim.MaxCP = MaxCP;
+            sim.BaseCraftsmanship = BaseCraftsmanship;
+            sim.BaseControl = BaseControl;
+            sim.BaseMaxCP = BaseMaxCP;
+            sim.CraftsmanshipBuff = CraftsmanshipBuff;
+            sim.ControlBuff = ControlBuff;
+            sim.MaxCPBuff = MaxCPBuff;
             sim.SetRecipe(CurrentRecipe);
             if (copyActions)
             {
@@ -186,6 +234,7 @@ namespace FFXIVCraftingSim
             InnovationBuff = null;
             MuscleMemoryBuff = null;
             ManipulationBuff = null;
+
             for (int i = 0; i < CraftingActionsLength; i++)
             {
 
@@ -270,13 +319,13 @@ namespace FFXIVCraftingSim
                 double progress = CurrentProgress;
                 if (progress > CurrentRecipe.MaxProgress)
                     progress = CurrentRecipe.MaxProgress;
-                double result = progress / CurrentRecipe.MaxProgress * 10000;
+                double result = progress / CurrentRecipe.MaxProgress * 100000;
                 if (progress < CurrentRecipe.MaxProgress)
                     return result - 5000;
                 double quality = CurrentQuality;
                 if (quality > CurrentRecipe.MaxQuality)
                     quality = CurrentRecipe.MaxQuality;
-                result += quality / CurrentRecipe.MaxQuality * 10000;
+                result += quality / CurrentRecipe.MaxQuality * 100000;
                 for (int i = 0; i < CraftingActionsLength; i++)
                 {
                     result -= CraftingActions[i].IsBuff ? 20 : 30;

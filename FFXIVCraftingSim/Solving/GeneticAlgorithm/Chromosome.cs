@@ -11,9 +11,12 @@ namespace FFXIVCraftingSim.Solving.GeneticAlgorithm
     {
         public CraftingSim Sim { get; set; }
         public Population Population { get; private set; }
-        public ushort[] Values { get; private set; }
+        public ushort[] Values { get; set; }
+        public ushort[] UsableValues { get; set; }
         private ushort[] PossibleValues { get; set; }
         public double? Fitness { get; set; }
+
+        public int Size { get; private set; }
 
         public Chromosome(CraftingSim sim, Population population, ushort[] possibleValues, ushort[] values)
         {
@@ -30,6 +33,8 @@ namespace FFXIVCraftingSim.Solving.GeneticAlgorithm
             Population = population;
             PossibleValues = possibleValues;
             Values = new ushort[valueCount];
+
+
             for (int i = 0; i < Values.Length; i++)
             {
                 Values[i] = PossibleValues.GetRandom();
@@ -40,8 +45,14 @@ namespace FFXIVCraftingSim.Solving.GeneticAlgorithm
         public double Evaluate()
         {
             Sim.RemoveActions();
-            var values = Values.Where(x => x != 0).Select(y => CraftingAction.CraftingActions[y]);
+            UsableValues = Values.Where(x => x != 0).ToArray();
+            var values = UsableValues.Select(y => CraftingAction.CraftingActions[y]).ToArray();
+            //for (int i = 0; i < values.Length; i++)
+            //    Values[i] = (ushort)values[i].Id;
             Sim.AddActions(values);
+            Size = Sim.CraftingActionsLength;
+            //for (int i = Size; i < Values.Length; i++)
+            //    Values[i] = 0;
             return Sim.Score;
         }
 
@@ -52,23 +63,23 @@ namespace FFXIVCraftingSim.Solving.GeneticAlgorithm
             if (this == null && other == null)
                 return 0;
             if (this != null && other == null)
-                return 1;
-            if (this == null && other != null)
                 return -1;
+            if (this == null && other != null)
+                return 1;
 
             if (Fitness == null && other.Fitness == null)
                 return 0;
             if (this.Fitness != null && other.Fitness == null)
-                return 1;
-            if (this.Fitness == null && other.Fitness != null)
                 return -1;
+            if (this.Fitness == null && other.Fitness != null)
+                return 1;
 
             if (Fitness > other.Fitness)
-                return 1;
+                return -1;
             if (Fitness == other.Fitness)
                 return 0;
             if (Fitness < other.Fitness)
-                return -1;
+                return 1;
             return 0;
         }
 
@@ -90,7 +101,7 @@ namespace FFXIVCraftingSim.Solving.GeneticAlgorithm
 
         public override bool Equals(object obj)
         {
-            if (obj == null)
+            if (ReferenceEquals(obj, null))
                 return false;
             Chromosome other = obj as Chromosome;
             return Equals(other);
@@ -98,13 +109,28 @@ namespace FFXIVCraftingSim.Solving.GeneticAlgorithm
 
         public bool Equals(Chromosome other)
         {
-            if (other == null)
+            if (ReferenceEquals(other, null))
                 return false;
-            if (Values.Length != other.Values.Length) return false;
-            for (int i = 0; i < Values.Length; i++)
-                if (Values[i] != other.Values[i])
+            if (Fitness != other.Fitness)
+                return false;
+            if (UsableValues != other.UsableValues) return false;
+
+            for (int i = 0; i < UsableValues.Length; i++)
+                if (UsableValues[i] != other.UsableValues[i])
                     return false;
             return true;
+        }
+
+        public static bool operator ==(Chromosome left, Chromosome right)
+        {
+            if (left is null && right is null)
+                return true;
+            return left.Equals(right);
+        }
+
+        public static bool operator !=(Chromosome left, Chromosome right)
+        {
+            return !left.Equals(right);
         }
     }
 }

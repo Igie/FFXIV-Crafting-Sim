@@ -3,6 +3,9 @@ using FFXIVCraftingSim.Stream;
 using FFXIVCraftingSim.Types.GameData;
 using SaintCoinach;
 using SaintCoinach.Xiv;
+using SaintCoinach.Xiv.ItemActions;
+using SaintCoinach.Xiv.Items;
+using SaintCoinach.Xiv.Sheets;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -23,6 +26,8 @@ namespace FFXIVCraftingSim
         public static Dictionary<int, ItemInfo> Items { get; private set; }
         public static Dictionary<string, ActionInfo> Actions { get; private set; }
 
+        public static List<ItemInfo> CrafterFood { get; private set; }
+
         public static List<LevelDifferenceInfo> LevelDifferences { get; private set; }
         public static Task InitTask { get; private set; }
         public static Task ReloadTask { get; private set; }
@@ -34,9 +39,6 @@ namespace FFXIVCraftingSim
             MainWindow = window;
             Game = new ARealmReversed(@"C:\Program Files (x86)\SquareEnix\FINAL FANTASY XIV - A Realm Reborn", SaintCoinach.Ex.Language.English);
 
-            var food = Game.GameData.GetSheet<Item>();
-            var hue = food.First(x => x.Name == "Blood Bouillabaisse");
-            var h = hue.ItemAction;
             if (InitTask == null || InitTask.IsCompleted)
                 InitTask = Task.Run(() =>
                 {
@@ -172,6 +174,7 @@ namespace FFXIVCraftingSim
                 File.Delete("Items.db");
 
             Items = new Dictionary<int, ItemInfo>();
+            CrafterFood = new List<ItemInfo>();
             if (File.Exists("Items.db"))
             {
                 SetStatus("Reading Items from Items.db...", 0);
@@ -185,6 +188,25 @@ namespace FFXIVCraftingSim
                         Id = s.ReadInt(),
                         Name = s.ReadString(),
                     };
+
+                    bool hasCrafterFoodInfo = s.ReadByte() == 1;
+                    if (hasCrafterFoodInfo)
+                    {
+                        var f = new CrafterFoodInfo(s.ReadByte());
+                        f.FoodType = (FoodType)s.ReadByte();
+
+                        for (int j = 0; j < f.StatTypes.Length; j++)
+                        {
+                            f.StatTypes[j] = (StatType)s.ReadByte();
+                            f.PercentageIncrease[j] = s.ReadInt();
+                            f.MaxIncrease[j] = s.ReadInt();
+                            f.PercentageIncreaseHQ[j] = s.ReadInt();
+                            f.MaxIncreaseHQ[j] = s.ReadInt();
+                        }
+
+                        info.FoodInfo = f;
+                        CrafterFood.Add(info);
+                    }
                     Items[info.Id] = info;
                     if (i % 100 == 0)
                         SetStatus(null, i);
@@ -196,20 +218,68 @@ namespace FFXIVCraftingSim
             else
             {
                 var sheet = Game.GameData.GetSheet<Item>();
-                SetStatus("Reading Items from sheets...", 0, 0, sheet.Count());
+
                 int count = sheet.Count();
                 int[] keys = sheet.Keys.ToArray();
                 for (int i = 0; i < count; i++)
                 {
                     var value = sheet[keys[i]];
                     if (!string.IsNullOrEmpty(value.Name))
-                        Items[value.Key] = new ItemInfo
+                    {
+                        var item = Items[value.Key] = new ItemInfo
                         {
                             Id = value.Key,
                             Name = value.Name,
                         };
-                    if (i % 100 == 0)
-                        SetStatus(null, i);
+                        if (i % 100 == 0)
+                            SetStatus(null, i);
+                        Enhancement food = null; 
+
+                        int type = 0;
+
+                        if (value.ItemAction is Food)
+                        {
+                            //food
+                            food = value.ItemAction as Enhancement;
+                            type = 1;
+                        } else if (value.ItemAction is Enhancement)
+                        {
+                            //enhancement
+                            food = value.ItemAction as Enhancement;
+                            type = 2;
+                        }
+
+                        if (type != 0)
+                        {
+                           
+                            var args = food.ItemFood.Parameters.ToArray();
+
+                            
+                            
+                            bool isCrafterFood = args.Any(x => x.BaseParam.Name == "Craftsmanship" || x.BaseParam.Name == "Control" || x.BaseParam.Name == "CP");
+                            if (isCrafterFood)
+                            {
+                                args = args.Where(x => x.BaseParam.Name == "Craftsmanship" || x.BaseParam.Name == "Control" || x.BaseParam.Name == "CP").ToArray();
+                                CrafterFoodInfo f = new CrafterFoodInfo(args.Length);
+                                f.FoodType = (FoodType)type;
+
+                                for (int j = 0; j < args.Length; j++)
+                                {
+                                    ParameterValueRelativeLimited[] values = args[j].Cast<ParameterValueRelativeLimited>().ToArray();
+                                    
+                                    f.StatTypes[j] = (StatType)Enum.Parse(typeof(StatType), args[j].BaseParam.Name);
+                                    f.PercentageIncrease[j] = (int)(values[0].Amount * 100);
+                                    f.MaxIncrease[j] = values[0].Maximum;
+                                    f.PercentageIncreaseHQ[j] = (int)(values[1].Amount * 100);
+                                    f.MaxIncreaseHQ[j] = values[1].Maximum;
+                                }
+
+                                item.FoodInfo = f;
+
+                                CrafterFood.Add(item);
+                            }
+                        }
+                    }
                 }
 
                 SetStatus(null, count);
@@ -229,6 +299,23 @@ namespace FFXIVCraftingSim
                 var value = values[i];
                 s.WriteInt(value.Id);
                 s.WriteString(value.Name);
+
+                s.WriteByte(value.FoodInfo == null ? (byte)0 : (byte)1);
+
+                if (value.FoodInfo != null)
+                {
+                    var f = value.FoodInfo;
+                    s.WriteByte((byte)f.StatTypes.Length);
+                    s.WriteByte((byte)f.FoodType);
+                    for (int j = 0; j < f.StatTypes.Length; j++)
+                    {
+                        s.WriteByte((byte)f.StatTypes[j]);
+                        s.WriteInt(f.PercentageIncrease[j]);
+                        s.WriteInt(f.MaxIncrease[j]);
+                        s.WriteInt(f.PercentageIncreaseHQ[j]);
+                        s.WriteInt(f.MaxIncreaseHQ[j]);
+                    }
+                }
 
                 if (i % 100 == 0)
                     SetStatus(null, i);

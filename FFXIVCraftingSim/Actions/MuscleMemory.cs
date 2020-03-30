@@ -12,7 +12,7 @@ namespace FFXIVCraftingSim.Actions
         public override int Id => 12;
 
         public override string Name => "Muscle Memory";
-        public override bool IsBuff => true;
+        public override bool IsBuff => false;
         public override bool IncreasesProgress => true;
         public override bool IncreasesQuality => false;
         protected override int DurabilityCost => 10;

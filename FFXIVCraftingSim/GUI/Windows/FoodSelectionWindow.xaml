@@ -1,0 +1,24 @@
+﻿<Window x:Class="FFXIVCraftingSim.GUI.Windows.FoodSelectionWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:FFXIVCraftingSim.GUI.Windows"
+        mc:Ignorable="d"
+        Title="Select Food" Height="420.998" Width="818.535" WindowStyle="ToolWindow" FontFamily="Consolas">
+    <Grid>
+        <TextBox x:Name="TextBoxSearchString" Padding="4,4" Height="23" TextWrapping="NoWrap" VerticalAlignment="Top" TextChanged="SearchTextChanged"/>
+        <ListView x:Name="ListViewFood" Margin="0,23,0,24" MouseDoubleClick="MouseDoubleClickFood" FontSize="10">
+            <ListView.View>
+                <GridView>
+                    <GridViewColumn Width="200" Header="Name" DisplayMemberBinding="{Binding Name}" />
+                    <GridViewColumn Width="200" Header="Craftsmanship" DisplayMemberBinding="{Binding FoodInfo.Craftsmanship}" />
+                    <GridViewColumn Width="200" Header="Control" DisplayMemberBinding="{Binding FoodInfo.Control}" />
+                    <GridViewColumn Width="200" Header="CP" DisplayMemberBinding="{Binding FoodInfo.CP}" />
+                </GridView>
+            </ListView.View>
+        </ListView>
+        <CheckBox x:Name="CheckBoxHQ" Content="Use HQ Food" HorizontalAlignment="Left" Margin="0,0,0,1" Checked="CheckBoxHQChanged" Unchecked="CheckBoxHQChanged" Height="15" VerticalAlignment="Bottom"/>
+        <Button x:Name="ButtonRemoveFood" Content="Remove" HorizontalAlignment="Left" Margin="98,0,0,1" Width="75" Click="ButtonRemoveFood_Click" Height="18" VerticalAlignment="Bottom"/>
+    </Grid>
+</Window>

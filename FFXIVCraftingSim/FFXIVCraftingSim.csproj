@@ -111,6 +111,9 @@
     <Compile Include="CraftingSim.cs" />
     <Compile Include="GUI\CraftingActionContainer.cs" />
     <Compile Include="GUI\CraftingBuffContainer.cs" />
+    <Compile Include="GUI\Windows\FoodSelectionWindow.xaml.cs">
+      <DependentUpon>FoodSelectionWindow.xaml</DependentUpon>
+    </Compile>
     <Compile Include="GUI\Windows\RecipeSelectionWindow.xaml.cs">
       <DependentUpon>RecipeSelectionWindow.xaml</DependentUpon>
     </Compile>
@@ -126,6 +129,10 @@
     <Compile Include="Types\GameData\ItemInfo.cs" />
     <Compile Include="Types\GameData\LevelDifferenceInfo.cs" />
     <Compile Include="Types\GameData\RecipeInfo.cs" />
+    <Page Include="GUI\Windows\FoodSelectionWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="GUI\Windows\RecipeSelectionWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>

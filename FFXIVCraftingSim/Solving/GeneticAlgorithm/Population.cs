@@ -8,12 +8,14 @@ namespace FFXIVCraftingSim.Solving.GeneticAlgorithm
 {
     public class Population
     {
-        private double CrossoverRate = 0.6;
-        private double MutationRate = 0.4;
+        private double CrossoverRate = 0.8;
+        private double MutationRate = 0.1;
 
         private CraftingSim Sim { get; set; }
 
+        
         public int MaxSize { get; private set; }
+        public int DefaultChromosomeSize { get; private set; }
         public int ChromosomeSize { get; private set; }
         public ushort[] PossibleValues { get; private set; }
 
@@ -37,6 +39,7 @@ namespace FFXIVCraftingSim.Solving.GeneticAlgorithm
             Sim = sim;
             MaxSize = maxSize;
             Chromosomes = new Chromosome[MaxSize];
+            DefaultChromosomeSize = chromosomeSize;
             ChromosomeSize = chromosomeSize;
             PossibleValues = possibleValues;
 
@@ -52,7 +55,6 @@ namespace FFXIVCraftingSim.Solving.GeneticAlgorithm
             }
 
             Array.Sort(Chromosomes);
-            Array.Reverse(Chromosomes);
             CurrentGeneration = 0;
         }
 
@@ -78,7 +80,6 @@ namespace FFXIVCraftingSim.Solving.GeneticAlgorithm
             }
 
             Array.Sort(Chromosomes);
-            Array.Reverse(Chromosomes);
 
             CurrentGeneration++;
 
@@ -90,18 +91,15 @@ namespace FFXIVCraftingSim.Solving.GeneticAlgorithm
                 NonProgressiveGenerations = 0;
             }
 
-            if (NonProgressiveGenerations >= 500)
+
+            if (NonProgressiveGenerations >= 600)
             {
-                var best = Best;
-                for (int i = 0; i < MaxSize; i++)
+                for (int i = MaxSize / 10; i < MaxSize; i++)
                 {
                     Chromosomes[i] = new Chromosome(Sim, this, PossibleValues, ChromosomeSize);
                 }
 
-                Chromosomes[0] = best;
-
                 Array.Sort(Chromosomes);
-                Array.Reverse(Chromosomes);
 
                 NonProgressiveGenerations = 0;
                 NonProgressiveScore = Best.Fitness.Value;
@@ -117,19 +115,12 @@ namespace FFXIVCraftingSim.Solving.GeneticAlgorithm
 
             ushort[] firstArray = new ushort[ChromosomeSize];
             ushort[] secondArray = new ushort[ChromosomeSize];
-            for (int i = 0; i < ChromosomeSize; i++)
-            {
-                if (i < index || i > index + size)
-                {
-                    firstArray[i] = first.Values[i];
-                    secondArray[i] = second.Values[i];
-                }
-                else
-                {
-                    firstArray[i] = second.Values[i];
-                    secondArray[i] = first.Values[i];
-                }
-            }
+
+            Array.Copy(first.Values, firstArray, ChromosomeSize);
+            Array.Copy(second.Values, secondArray, ChromosomeSize);
+
+            Array.Copy(first.Values, index, secondArray, index, size);
+            Array.Copy(second.Values, index, firstArray, index, size);
 
             Chromosome firstNew = new Chromosome(Sim, this, PossibleValues, firstArray);
             Chromosome secondNew =new Chromosome(Sim, this, PossibleValues, secondArray);
@@ -156,14 +147,25 @@ namespace FFXIVCraftingSim.Solving.GeneticAlgorithm
 
         public bool Contains(Chromosome chromosome)
         {
-            return Chromosomes.Contains(chromosome);
+            int length = Chromosomes.Length;
+            for (int i = 0; i < length; i++)
+                if (Chromosomes[i].Fitness == chromosome.Fitness || Chromosomes[i] == chromosome)
+                    return true;
+            return false;
         }
 
         public void Reevaluate(CraftingSim sim)
         {
             sim.CopyTo(Sim);
+
+            ChromosomeSize = DefaultChromosomeSize;
+
+
             for (int i = 0; i < ChromosomeSize; i++)
             {
+                var a = Chromosomes[i].Values;
+                Array.Resize(ref a, ChromosomeSize);
+                Chromosomes[i].Values = a;
                 Chromosomes[i].Fitness = Chromosomes[i].Evaluate();
             }
         }

@@ -20,8 +20,13 @@ namespace FFXIVCraftingSim.Solving
         private int BestIndex { get; set; }
         private Task[] Tasks { get; set; }
 
+        public int Iterations { get; private set; }
+
         public bool Continue { get; set; }
         private bool NeedsUpdate { get; set; }
+
+        public event Action<Population> GenerationRan = delegate { };
+
         public Solver(CraftingSim sim, ushort[] availableActions, int taskCount)
         {
             Sim = sim;
@@ -38,6 +43,7 @@ namespace FFXIVCraftingSim.Solving
             Continue = true;
             SimScore = Sim.Score;
             NeedsUpdate = false;
+            Iterations = 0;
             Task.Run(() =>
             {
                 Task.Run(UpdateLoop);
@@ -56,14 +62,10 @@ namespace FFXIVCraftingSim.Solving
             Populations[i].Reevaluate(Sim);
             while (Continue)
             {
-                try
-                {
-                    Populations[i].RunOnce();
-                }
-                catch (Exception e)
-                {
-                    Debugger.Break();
-                }
+                Populations[i].RunOnce();
+                Iterations++;
+                GenerationRan(Populations[i]);
+                
                 var best = Populations[i].Best;
                 if (SimScore < best.Fitness && !NeedsUpdate)
                 {

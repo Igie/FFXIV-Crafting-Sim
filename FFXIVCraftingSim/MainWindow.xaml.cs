@@ -33,6 +33,12 @@ namespace FFXIVCraftingSim
     public partial class MainWindow : Window
     {
         private CraftingSim Sim { get; set; }
+
+        private bool FoodIsHQ { get; set; }
+        private bool TeaIsHQ { get; set; }
+        private ItemInfo SelectedFood { get; set; }
+        private ItemInfo SelectedTea { get; set; }
+
         private Solver Solver { get; set; }
 
         public MainWindow()
@@ -49,6 +55,8 @@ namespace FFXIVCraftingSim
 
             PlayerStatsFromTextToSim();
             UpdateCraftingText();
+            if (Sim != null)
+                Sim.ExectueActions();
         }
 
 
@@ -88,6 +96,20 @@ namespace FFXIVCraftingSim
                     TextBoxCrafterControl.Text = s.ReadInt().ToString();
                     TextBoxCrafterMaxCP.Text = s.ReadInt().ToString();
                 });
+
+                int id = s.ReadInt();
+                if (id > 0)
+                {
+                    SelectedFood = G.Items[id];
+                    FoodIsHQ = s.ReadByte() == 1;
+                }
+                id = s.ReadInt();
+                if (id > 0)
+                {
+                    SelectedTea = G.Items[id];
+                    TeaIsHQ = s.ReadByte() == 1;
+                }
+                ApplyFoodBuffs();
                 List<CraftingAction> actions = new List<CraftingAction>();
                 while (s.Position < s.Length)
                 {
@@ -107,10 +129,12 @@ namespace FFXIVCraftingSim
                 var actions = CraftingAction.CraftingActions.Select(x => (ushort)x.Key).ToList();
                 actions.Add(0);
                 Solver = new Solver(Sim, actions.ToArray(), 12);
+                Solver.GenerationRan += Solver_GenerationRan;
             }
             //G.Loaded -= G_Loaded;
         }
 
+       
 
         private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
@@ -119,11 +143,20 @@ namespace FFXIVCraftingSim
             if (Sim == null || Sim.CurrentRecipe == null)
                 return;
             DataStream s = new DataStream();
+            Sim.CraftsmanshipBuff = 0;
+            Sim.ControlBuff = 0;
+            Sim.MaxCPBuff = 0;
             s.WriteInt(Sim.CurrentRecipe.Id);
             s.WriteInt(Sim.Level);
             s.WriteInt(Sim.Craftsmanship);
             s.WriteInt(Sim.Control);
             s.WriteInt(Sim.MaxCP);
+            s.WriteInt(SelectedFood == null ? 0 : SelectedFood.Id);
+            if (SelectedFood != null)
+                s.WriteByte(FoodIsHQ ? (byte)1 : (byte)0);
+            s.WriteInt(SelectedTea == null ? 0 : SelectedTea.Id);
+            if (SelectedTea != null)
+                s.WriteByte(TeaIsHQ ? (byte)1 : (byte)0);
             var actions = Sim.GetCraftingActions();
             foreach (var action in actions)
                 s.WriteInt(action.Id);
@@ -170,6 +203,70 @@ namespace FFXIVCraftingSim
 
             Debugger.Log(0, "", "Selected Recipe: " + (window.SelectedRecipe != null ? window.SelectedRecipe.Name : "None") + "\r\n");
         }
+
+        private void ButtonFood_Click(object sender, RoutedEventArgs e)
+        {
+            FoodSelectionWindow window = new FoodSelectionWindow();
+            window.LoadList(G.CrafterFood.Where(x => x.FoodInfo.FoodType == FoodType.Food));
+            if (window.ShowDialog() == true)
+            {
+                SelectedFood = window.SelectedItem;
+                if (SelectedFood != null)
+                    FoodIsHQ = window.IsHQ;
+                    
+                 
+                ApplyFoodBuffs();
+            }
+        }
+
+        private void ButtonTea_Click(object sender, RoutedEventArgs e)
+        {
+            FoodSelectionWindow window = new FoodSelectionWindow();
+            window.LoadList(G.CrafterFood.Where(x => x.FoodInfo.FoodType == FoodType.Tea));
+            if (window.ShowDialog() == true)
+            {
+                SelectedTea = window.SelectedItem;
+                if (SelectedTea != null)
+                    TeaIsHQ = window.IsHQ;
+                   
+
+                ApplyFoodBuffs();
+                UpdateCraftingText();
+            }
+        }
+
+        private void ApplyFoodBuffs()
+        {
+            Sim.CraftsmanshipBuff = 0;
+            Sim.ControlBuff = 0;
+            Sim.MaxCPBuff = 0;
+
+            int currentCraftsmanship = Sim.Craftsmanship;
+            int currentControl = Sim.Control;
+            int currentMaxCP = Sim.MaxCP;
+
+            if (SelectedFood != null)
+            {
+                Dispatcher.Invoke(() => ButtonFood.Content = (FoodIsHQ ? "HQ" : "NQ") + ' ' + SelectedFood.Name);
+                Sim.CraftsmanshipBuff = SelectedFood.FoodInfo.GetCraftsmanshipBuff(currentCraftsmanship, FoodIsHQ);
+                Sim.ControlBuff = SelectedFood.FoodInfo.GetControlBuff(currentControl, FoodIsHQ);
+                Sim.MaxCPBuff = SelectedFood.FoodInfo.GetMaxCPBuff(currentMaxCP, FoodIsHQ);
+            } else
+                Dispatcher.Invoke(() => ButtonFood.Content = "None");
+
+            if (SelectedTea != null)
+            {
+                Dispatcher.Invoke(() => ButtonTea.Content = (TeaIsHQ ? "HQ" : "NQ") + ' ' + SelectedTea.Name);
+                Sim.CraftsmanshipBuff += SelectedTea.FoodInfo.GetCraftsmanshipBuff(currentCraftsmanship, TeaIsHQ);
+                Sim.ControlBuff += SelectedTea.FoodInfo.GetControlBuff(currentControl, TeaIsHQ);
+                Sim.MaxCPBuff += SelectedTea.FoodInfo.GetMaxCPBuff(currentMaxCP, TeaIsHQ);
+            }
+            else
+                Dispatcher.Invoke(() => ButtonTea.Content = "None");
+            UpdatePlayerStatsText();
+            Sim.ExectueActions();
+        }
+
         private List<CraftingActionContainer> CurrentActions { get; set; } = new List<CraftingActionContainer>();
         private int OldProgress { get; set; }
         private int OldQuality { get; set; }
@@ -260,19 +357,33 @@ namespace FFXIVCraftingSim
                     Sim.Level = val;
                 }
                 if (int.TryParse(TextBoxCrafterCraftsmanship.Text, out val))
-                    Sim.Craftsmanship = val;
+                    Sim.BaseCraftsmanship = val;
 
                 if (int.TryParse(TextBoxCrafterControl.Text, out val))
                 {
-                    Sim.Control = val;
+                    Sim.BaseControl = val;
                 }
 
                 if (int.TryParse(TextBoxCrafterMaxCP.Text, out val))
                 {
-                    Sim.MaxCP = val;
-                    Sim.CurrentCP = val;
+                    Sim.BaseMaxCP = val;
+                    Sim.CurrentCP = Sim.MaxCP;
                     LabelCP.Content = $"CP: {Sim.CurrentCP}/{Sim.MaxCP}";
                 }
+            });
+        }
+
+        public void UpdatePlayerStatsText()
+        {
+            Dispatcher.Invoke(() =>
+            {
+                TextBoxCrafterCraftsmanship.Text = Sim.BaseCraftsmanship.ToString();
+                TextBoxCrafterControl.Text = Sim.BaseControl.ToString();
+                TextBoxCrafterMaxCP.Text = Sim.BaseMaxCP.ToString();
+
+                TextBoxCrafterCraftsmanshipBuff.Text = '+' + Sim.CraftsmanshipBuff.ToString();
+                TextBoxCrafterControlBuff.Text = '+' + Sim.ControlBuff.ToString();
+                TextBoxCrafterMaxCPBuff.Text = '+' + Sim.MaxCPBuff.ToString();
             });
         }
 
@@ -289,7 +400,7 @@ namespace FFXIVCraftingSim
                 ProgressBarProgress.Value = Sim.CurrentProgress;
                 LabelQuality.Content = $"{Sim.CurrentQuality}/{Sim.CurrentRecipe.MaxQuality} ({Sim.GetQualityIncrease(1)} at 100%)";
                 ProgressBarQuality.Value = Sim.CurrentQuality;
-                LabelScore.Content = "Score: " + Sim.Score;
+                LabelScore.Content = "Score: " + Sim.Score.ToString("#.##");
             });
         }
 
@@ -321,6 +432,14 @@ namespace FFXIVCraftingSim
                 Solver.Start();
         }
 
+        private void Solver_GenerationRan(Solving.GeneticAlgorithm.Population obj)
+        {
+            LabelIterations.Dispatcher.Invoke(() =>
+            {
+                LabelIterations.Content = "Iterations: " + Solver?.Iterations;
+            });
+        }
+
         private void CopyMacroClicked(object sender, RoutedEventArgs e)
         {
             if (Sim == null) return;
@@ -332,8 +451,10 @@ namespace FFXIVCraftingSim
                 CraftingAction ac = actions[i];
                 text += $"/ac \"{ac.Name}\" <wait.{(ac.IsBuff ? 2 : 3)}>\r\n";
             }
-            Clipboard.SetText(text);
+            Dispatcher.Invoke(() => Clipboard.SetDataObject(text));
 
         }
+
+       
     }
 }
