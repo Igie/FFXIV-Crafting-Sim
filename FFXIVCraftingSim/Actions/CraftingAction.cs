@@ -1,4 +1,5 @@
 ﻿using FFXIVCraftingSim.Actions.Buffs;
+using FFXIVCraftingSim.Types;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,10 +14,21 @@ namespace FFXIVCraftingSim.Actions
         CraftCompleted,
         NeedsBuff,
         NeedsNoBuff,
+        BuffUsedUp,
         NotEnoughDurability,
         NotEnoughCP,
         FirstActionOnly
     }
+
+    [Flags]
+    public enum CraftingActionType
+    {
+        None = 0,
+        IncreasesProgress = 1,
+        IncreasesQuality = 2,
+        IsBuff = 4
+    }
+
 
     public class CraftingAction
     {
@@ -42,9 +54,30 @@ namespace FFXIVCraftingSim.Actions
             CraftingActions.Add(17, new PreparatoryTouch());
             CraftingActions.Add(18, new Groundwork());
             CraftingActions.Add(19, new DelicateSynthesis());
+            CraftingActions.Add(20, new Observe());
+            CraftingActions.Add(21, new FocusedSynthesis());
+            CraftingActions.Add(22, new FocusedTouch());
+            CraftingActions.Add(23, new NameOfTheElements());
+            CraftingActions.Add(24, new BrandOfTheElements());
         }
 
         public static Dictionary<int, CraftingAction> CraftingActions { get; private set; }
+
+        public CraftingActionType CraftingActionType
+        {
+            get
+            {
+                CraftingActionType flags = CraftingActionType.None;
+                if (IncreasesProgress)
+                    flags |= CraftingActionType.IncreasesProgress; 
+                if (IncreasesQuality)
+                    flags |= CraftingActionType.IncreasesQuality;
+                if (IsBuff)
+                    flags |= CraftingActionType.IsBuff;
+                return flags;
+            }
+        }
+
         public virtual int Id
         {
             get { throw new NotImplementedException(); }
@@ -78,7 +111,7 @@ namespace FFXIVCraftingSim.Actions
             get { throw new NotImplementedException(); }
         }
 
-        public virtual int CPCost
+        protected virtual int CPCost
         {
             get { throw new NotImplementedException(); }
         }
@@ -95,11 +128,15 @@ namespace FFXIVCraftingSim.Actions
 
         public CraftingActionResult Check(CraftingSim sim, int index)
         {
+
             if (AsFirstActionOnly && index > 0)
                 return CraftingActionResult.FirstActionOnly;
             if (sim.CurrentProgress >= sim.CurrentRecipe.MaxProgress)
                 return CraftingActionResult.CraftCompleted;
-            if (CPCost > sim.CurrentCP)
+
+
+
+            if (GetCPCost(sim) > sim.CurrentCP)
                 return CraftingActionResult.NotEnoughCP;
             if (sim.CurrentDurability <= 0)
                 return CraftingActionResult.NotEnoughDurability;
@@ -121,9 +158,22 @@ namespace FFXIVCraftingSim.Actions
         {
             if (DurabilityCost <= 0)
                 return DurabilityCost;
-            else return sim.WasteNotBuff == null ? DurabilityCost : DurabilityCost / 2;
+            int durabilityCost = DurabilityCost;
+            if (sim.GetStepSettings().RecipeCondition == RecipeCondition.Sturdy)
+                durabilityCost /= 2;
+            if (sim.WasteNotBuff != null)
+                durabilityCost = (int)Math.Ceiling(durabilityCost / 2d);
+            return durabilityCost;
 
             //waste not check
+        }
+
+        public int GetCPCost(CraftingSim sim)
+        {
+            int cpCost = CPCost;
+            if (sim.GetStepSettings().RecipeCondition == RecipeCondition.Pliant)
+                cpCost = (int)Math.Ceiling(cpCost / 2d);
+            return cpCost;
         }
 
         public virtual void IncreaseProgress(CraftingSim sim)

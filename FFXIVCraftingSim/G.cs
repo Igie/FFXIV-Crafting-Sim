@@ -1,5 +1,6 @@
 ﻿using FFXIVCraftingSim.Converters;
 using FFXIVCraftingSim.Stream;
+using FFXIVCraftingSim.Types;
 using FFXIVCraftingSim.Types.GameData;
 using SaintCoinach;
 using SaintCoinach.Xiv;
@@ -23,6 +24,8 @@ namespace FFXIVCraftingSim
         public static ARealmReversed Game { get; private set; }
 
         public static List<RecipeInfo> Recipes { get; private set; }
+
+        public static Dictionary<AbstractRecipeInfo, List<RotationInfo>> RecipeRotations { get; private set; }
         public static Dictionary<int, ItemInfo> Items { get; private set; }
         public static Dictionary<string, ActionInfo> Actions { get; private set; }
 
@@ -46,6 +49,7 @@ namespace FFXIVCraftingSim
                     ReadItems();
                     ReadActions();
                     ReadLevelDifferences();
+                    ReadRecipeRotations();
                     Loaded();
                 });
         }
@@ -62,6 +66,7 @@ namespace FFXIVCraftingSim
                         ReadItems(true);
                         ReadActions(true);
                         ReadLevelDifferences(true);
+                        ReadRecipeRotations(true);
                         Loaded();
                     });
             }
@@ -94,6 +99,7 @@ namespace FFXIVCraftingSim
                         MaxQuality = s.ReadInt()
                     };
                     Recipes.Add(info);
+
                     if (i % 100 == 0)
                         SetStatus(null, i);
                 }
@@ -139,6 +145,8 @@ namespace FFXIVCraftingSim
                 WriteRecipes();
             }
         }
+
+
 
         private static void WriteRecipes()
         {
@@ -526,6 +534,120 @@ namespace FFXIVCraftingSim
             s.Close();
         }
 
+        private static void ReadRecipeRotations(bool deleteCurrent = false)
+        {
+            if (deleteCurrent && File.Exists("RecipeRotations.db"))
+                File.Delete("RecipeRotations.db");
+
+            if (File.Exists("RecipeRotations.db"))
+            {
+                SetStatus("Reading RecipeRotations from RecipeRotations.db...", 0);
+                DataStream s = new DataStream(File.ReadAllBytes("RecipeRotations.db"));
+                ushort length = s.ReadUShort();
+                RecipeRotations = new Dictionary<AbstractRecipeInfo, List<RotationInfo>>(length);
+                SetStatus(null, 0, 0, length);
+                for (ushort i = 0; i < length; i++)
+                {
+                    AbstractRecipeInfo info = new AbstractRecipeInfo
+                    {
+                        Level = s.ReadInt(),
+                        RequiredCraftsmanship = s.ReadInt(),
+                        RequiredControl = s.ReadInt(),
+                        Durability = s.ReadInt(),
+                        MaxProgress = s.ReadInt(),
+                        MaxQuality = s.ReadInt()
+                    };
+                    var ll = s.ReadUShort();
+                    RecipeRotations[info] = new List<RotationInfo>(ll);
+                    for (int j = 0; j < ll; j++)
+                    {
+                        RotationInfo rotation = new RotationInfo();
+                        rotation.MaxCraftsmanship = s.ReadInt();
+                        rotation.MinCraftsmanship = s.ReadInt();
+                        rotation.MinControl = s.ReadInt();
+                        rotation.CP = s.ReadInt();
+                        rotation.Score = s.ReadDouble();
+                        ushort l = s.ReadUShort();
+                        ushort[] array = new ushort[l];
+                        for (int k = 0; k < l; k++)
+                            array[k] = s.ReadUShort();
+                        rotation.Rotation = array;
+                        RecipeRotations[info].Add(rotation);
+                    }
+
+                    if (i % 100 == 0)
+                        SetStatus(null, i);
+                }
+                SetStatus(null, length);
+                s.Flush();
+                s.Close();
+            }
+            else
+            {
+
+                SetStatus("Creating RecipeRotations from Recipes...", 0, 0, Recipes.Count);
+
+                RecipeRotations = new Dictionary<AbstractRecipeInfo, List<RotationInfo>>();
+                for (int i = 0; i < Recipes.Count; i++)
+                {
+
+                    AbstractRecipeInfo abstractInfo = Recipes[i].GetAbstractData();
+                    if (!RecipeRotations.ContainsKey(abstractInfo))
+
+                        RecipeRotations[abstractInfo] = new List<RotationInfo>();
+
+                    if (i % 100 == 0)
+                        SetStatus(null, i);
+                }
+
+                SetStatus(null, Recipes.Count);
+
+                WriteRecipeRotations();
+            }
+        }
+
+
+
+        public static void WriteRecipeRotations()
+        {
+            SetStatus("Writing RecipeRotations to RecipeRotations.db...", 0, 0, RecipeRotations.Count);
+            DataStream s = new DataStream();
+           
+            var keys = RecipeRotations.Keys.ToArray();
+            s.WriteUShort((ushort)keys.Length);
+            for (int i = 0; i < keys.Length; i++)
+            {
+                var value = keys[i];
+                s.WriteInt(value.Level);
+                s.WriteInt(value.RequiredCraftsmanship);
+                s.WriteInt(value.RequiredControl);
+                s.WriteInt(value.Durability);
+                s.WriteInt(value.MaxProgress);
+                s.WriteInt(value.MaxQuality);
+
+                var rotations = RecipeRotations[value];
+                s.WriteUShort((ushort)rotations.Count);
+                for (int j = 0; j < rotations.Count; j++)
+                {
+                    s.WriteInt(rotations[j].MaxCraftsmanship);
+                    s.WriteInt(rotations[j].MinCraftsmanship);
+                    s.WriteInt(rotations[j].MinControl);
+                    s.WriteInt(rotations[j].CP);
+                    s.WriteDouble(rotations[j].Score);
+                    s.WriteUShort((ushort)rotations[j].Rotation.Array.Length);
+                    for (int k = 0; k < rotations[j].Rotation.Array.Length; k++)
+                        s.WriteUShort(rotations[j].Rotation.Array[k]);
+                }
+                if (i % 100 == 0)
+                    SetStatus(null, i);
+            }
+            SetStatus(null, RecipeRotations.Count);
+
+            File.WriteAllBytes("RecipeRotations.db", s.GetBytes());
+            s.Flush();
+            s.Close();
+        }
+
         public static int GetPlayerLevel(int level)
         {
             switch (level)
@@ -576,6 +698,47 @@ namespace FFXIVCraftingSim
                     return LevelDifferences[i];
 
             throw new Exception();
+        }
+
+        public static void AddRotationFromSim(CraftingSim sim)
+        {
+            if (sim == null || sim.CurrentRecipe == null || sim.CustomRecipe)
+                return;
+               CraftingSim s = sim.Clone();
+            s.AddActions(sim.GetCraftingActions());
+
+            var abstractData = s.CurrentRecipe.GetAbstractData();
+            if (!G.RecipeRotations.ContainsKey(abstractData))
+            {
+                Debugger.Break();
+                return;
+            }
+
+            if (s.CurrentProgress < s.CurrentRecipe.MaxProgress || s.CurrentQuality < s.CurrentRecipe.MaxQuality)
+                return;
+
+            RotationInfo info = RotationInfo.FromSim(s);
+
+
+            if (!G.RecipeRotations[abstractData].Contains(info) && !G.RecipeRotations[abstractData].Any(x => x.IsBetterThan(info)))
+                G.RecipeRotations[abstractData].Add(info);
+
+            for (int i = 0; i < G.RecipeRotations[abstractData].Count; i++)
+            {
+                if (info.IsBetterThan(G.RecipeRotations[abstractData][i]))
+                {
+                    G.RecipeRotations[abstractData].RemoveAt(i);
+                    i--;
+                }
+            }
+
+            MainWindow.UpdateRotationsCount();
+        }
+
+        public static void RemoveRotation(AbstractRecipeInfo abstractRecipeInfo, RotationInfo rotationInfo)
+        {
+            G.RecipeRotations[abstractRecipeInfo].Remove(rotationInfo);
+            MainWindow.UpdateRotationsCount();
         }
 
         public static void SetStatus(string status = null, double? value = null, double? min = null, double? max = null)

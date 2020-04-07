@@ -1,6 +1,7 @@
 ﻿using FFXIVCraftingSim.Actions;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -14,23 +15,24 @@ namespace FFXIVCraftingSim.Solving.GeneticAlgorithm
         public ushort[] Values { get; set; }
         public ushort[] UsableValues { get; set; }
         private ushort[] PossibleValues { get; set; }
-        public double? Fitness { get; set; }
+        public double Fitness { get; set; }
+
+        public int Hash { get; private set; }
 
         public int Size { get; private set; }
 
-        public Chromosome(CraftingSim sim, Population population, ushort[] possibleValues, ushort[] values)
+        public Chromosome(CraftingSim sim, ushort[] possibleValues, int valueCount, ushort[] values)
         {
-            Sim = sim;
-            Population = population;
+            Sim = sim.Clone();
             PossibleValues = possibleValues;
-            Values = values;
+            Values = new ushort[valueCount];
+            Array.Copy(values, Values, values.Length);
             Fitness = Evaluate();
         }
 
-        public Chromosome(CraftingSim sim, Population population, ushort[] possibleValues, int valueCount)
+        public Chromosome(CraftingSim sim, ushort[] possibleValues, int valueCount)
         {
-            Sim = sim;
-            Population = population;
+            Sim = sim.Clone();
             PossibleValues = possibleValues;
             Values = new ushort[valueCount];
 
@@ -42,17 +44,20 @@ namespace FFXIVCraftingSim.Solving.GeneticAlgorithm
             Fitness = Evaluate();
         }
 
+        public Chromosome Clone()
+        {
+            return new Chromosome(Sim, PossibleValues, Values.Length, Values);
+        }
+
         public double Evaluate()
         {
             Sim.RemoveActions();
-            UsableValues = Values.Where(x => x != 0).ToArray();
+            UsableValues = Values.Where(x => x > 0).ToArray();
             var values = UsableValues.Select(y => CraftingAction.CraftingActions[y]).ToArray();
-            //for (int i = 0; i < values.Length; i++)
-            //    Values[i] = (ushort)values[i].Id;
             Sim.AddActions(values);
             Size = Sim.CraftingActionsLength;
-            //for (int i = Size; i < Values.Length; i++)
-            //    Values[i] = 0;
+            UsableValues = UsableValues.Take(Size).ToArray();
+            Hash = GetHashCode();
             return Sim.Score;
         }
 
@@ -65,13 +70,6 @@ namespace FFXIVCraftingSim.Solving.GeneticAlgorithm
             if (this != null && other == null)
                 return -1;
             if (this == null && other != null)
-                return 1;
-
-            if (Fitness == null && other.Fitness == null)
-                return 0;
-            if (this.Fitness != null && other.Fitness == null)
-                return -1;
-            if (this.Fitness == null && other.Fitness != null)
                 return 1;
 
             if (Fitness > other.Fitness)
@@ -90,11 +88,11 @@ namespace FFXIVCraftingSim.Solving.GeneticAlgorithm
 
         public override int GetHashCode()
         {
-            int result = 29;
-            for (int i = 0; i < Values.Length; i++)
+            int result = 7;
+            for (int i = 0; i < UsableValues.Length; i++)
             {
                 result ^= Values[i];
-                result *= 13;
+                result *= 29;
             }
             return result;
         }
@@ -113,7 +111,13 @@ namespace FFXIVCraftingSim.Solving.GeneticAlgorithm
                 return false;
             if (Fitness != other.Fitness)
                 return false;
-            if (UsableValues != other.UsableValues) return false;
+
+
+            if (UsableValues.Length != other.UsableValues.Length)
+                return false;
+
+
+            return Hash == other.Hash;
 
             for (int i = 0; i < UsableValues.Length; i++)
                 if (UsableValues[i] != other.UsableValues[i])
@@ -123,13 +127,22 @@ namespace FFXIVCraftingSim.Solving.GeneticAlgorithm
 
         public static bool operator ==(Chromosome left, Chromosome right)
         {
-            if (left is null && right is null)
-                return true;
+            if (left is null)
+                if (right is null)
+                    return true;
+                else
+                    return right.Equals(left);
             return left.Equals(right);
         }
 
         public static bool operator !=(Chromosome left, Chromosome right)
         {
+            if (left is null)
+                if (right is null)
+                    return false;
+                else
+                    return !right.Equals(left);
+
             return !left.Equals(right);
         }
     }

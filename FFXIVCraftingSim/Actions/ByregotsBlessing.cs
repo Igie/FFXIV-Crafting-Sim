@@ -15,7 +15,7 @@ namespace FFXIVCraftingSim.Actions
         public override bool IncreasesProgress => false;
         public override bool IncreasesQuality => true;
         protected override int DurabilityCost => 10;
-        public override int CPCost => 24;
+        protected override int CPCost => 24;
         public override bool AsFirstActionOnly => false;
         public override bool AddsBuff => false;
 
@@ -28,7 +28,9 @@ namespace FFXIVCraftingSim.Actions
 
         public override double GetEfficiency(CraftingSim sim)
         {
-            return 1d + 0.2 * (sim.InnerQuietBuff.Stack - 1);
+            if (sim.InnerQuietBuff != null)
+                return 1d + 0.2 * (sim.InnerQuietBuff.Stack - 1);
+            return 1d;
         }
 
         public override void IncreaseQuality(CraftingSim sim)

@@ -12,10 +12,13 @@ namespace FFXIVCraftingSim.Actions.Buffs
 
         public override void Step(CraftingSim sim)
         {
-            sim.CurrentDurability += 5;
-            if (sim.CurrentDurability > sim.CurrentRecipe.Durability)
-                sim.CurrentDurability = sim.CurrentRecipe.Durability;
-            Stack--;
+            if (!(sim.CraftingActions[sim.Step] is Manipulation) && sim.CurrentDurability > 0)
+            {
+                sim.CurrentDurability += 5;
+                if (sim.CurrentDurability > sim.CurrentRecipe.Durability)
+                    sim.CurrentDurability = sim.CurrentRecipe.Durability;
+                Stack--;
+            }
             if (Stack == 0)
                 NeedsRemove = true;
         }

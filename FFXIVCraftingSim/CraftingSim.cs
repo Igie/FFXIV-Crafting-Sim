@@ -1,5 +1,6 @@
 ﻿using FFXIVCraftingSim.Actions;
 using FFXIVCraftingSim.Actions.Buffs;
+using FFXIVCraftingSim.Types;
 using FFXIVCraftingSim.Types.GameData;
 using System;
 using System.Collections.Generic;
@@ -12,7 +13,7 @@ namespace FFXIVCraftingSim
 {
     public class CraftingSim
     {
-        public const int MaxActions = 40;
+        public const int MaxActions = 60;
 
         private int level;
         public int Level
@@ -84,6 +85,8 @@ namespace FFXIVCraftingSim
         public int CurrentQuality { get; set; }
         public int CurrentCP { get; set; }
 
+        public Dictionary<int, CraftingSimStepSettings> StepSettings { get; set; }
+
         public RecipeInfo CurrentRecipe { get; private set; }
 
         public LevelDifferenceInfo LevelDifference { get; private set; }
@@ -98,6 +101,10 @@ namespace FFXIVCraftingSim
         public InnovationBuff InnovationBuff { get; set; }
         public MuscleMemoryBuff MuscleMemoryBuff { get; set; }
         public ManipulationBuff ManipulationBuff { get; set; }
+        public ObserveBuff ObserveBuff { get; set; }
+        public NameOfTheElementsBuff NameOfTheElementsBuff { get; set; }
+
+        public bool NameOfTheElementsUsed { get; set; }
 
         private int _CraftingActionsLength;
         public int CraftingActionsLength
@@ -122,6 +129,9 @@ namespace FFXIVCraftingSim
             CraftingActions = new CraftingAction[MaxActions];
             CraftingActionsLength = 0;
             CraftingBuffs = new List<CraftingBuff>();
+            StepSettings = new Dictionary<int, CraftingSimStepSettings>(MaxActions);
+            for (int i = 0; i < MaxActions; i++)
+                StepSettings[i] = new CraftingSimStepSettings();
         }
 
         public CraftingSim Clone()
@@ -135,6 +145,7 @@ namespace FFXIVCraftingSim
             result.CraftsmanshipBuff = CraftsmanshipBuff;
             result.ControlBuff = ControlBuff;
             result.MaxCPBuff = MaxCPBuff;
+            result.StepSettings = new Dictionary<int, CraftingSimStepSettings>(StepSettings);
             if (CurrentRecipe != null)result.SetRecipe(CurrentRecipe);
             return result;
         }
@@ -148,6 +159,7 @@ namespace FFXIVCraftingSim
             sim.CraftsmanshipBuff = CraftsmanshipBuff;
             sim.ControlBuff = ControlBuff;
             sim.MaxCPBuff = MaxCPBuff;
+            sim.StepSettings = new Dictionary<int, CraftingSimStepSettings>(StepSettings);
             sim.SetRecipe(CurrentRecipe);
             if (copyActions)
             {
@@ -169,7 +181,7 @@ namespace FFXIVCraftingSim
                 CraftingActions[CraftingActionsLength++] = actions[i];
             if (CraftingActionsLength > MaxActions)
                 Debugger.Break();
-            ExectueActions();
+            ExecuteActions();
         }
 
         public void RemoveActionAt(int index)
@@ -183,7 +195,7 @@ namespace FFXIVCraftingSim
             }
             CraftingActions[CraftingActionsLength] = null;
 
-            ExectueActions();
+            ExecuteActions();
         }
 
         public void RemoveActions()
@@ -193,6 +205,8 @@ namespace FFXIVCraftingSim
             for (int i = 0; i < CraftingActionsLength; i++)
                 CraftingActions[i] = null;
             CraftingActionsLength = 0;
+
+            ExecuteActions();
         }
 
         public void RemoveRedundantActions()
@@ -213,10 +227,10 @@ namespace FFXIVCraftingSim
         {
             CurrentRecipe = recipe;
             LevelDifference = G.GetCraftingLevelDifference(ActualLevel - recipe.Level);
-            ExectueActions();
+            ExecuteActions();
         }
 
-        public void ExectueActions()
+        public void ExecuteActions()
         {
             if (CurrentRecipe == null)
                 return;
@@ -234,31 +248,36 @@ namespace FFXIVCraftingSim
             InnovationBuff = null;
             MuscleMemoryBuff = null;
             ManipulationBuff = null;
+            ObserveBuff = null;
+            NameOfTheElementsBuff = null;
+            NameOfTheElementsUsed = false;
+
+            if (StepSettings.ContainsKey(0))
+            {
+                var settings = StepSettings[0];
+            }
 
             for (int i = 0; i < CraftingActionsLength; i++)
             {
-
                 CraftingAction action = CraftingActions[i];
-                if (action == null)
-                {
-                    break;
-                }
+                Step = i;
+               
+
                 if (action.Check(this, Step) != CraftingActionResult.Success)
                 {
                     RemoveRedundantActions();
                     FinishedExecution(this);
                     return;
                 }
-                Step++;
+                
 
-             
                 action.IncreaseProgress(this);
                 action.IncreaseQuality(this);
 
                 CurrentDurability -= action.GetDurabilityCost(this);
                 if (CurrentDurability > CurrentRecipe.Durability)
                     CurrentDurability = CurrentRecipe.Durability;
-                CurrentCP -= action.CPCost;
+                CurrentCP -= action.GetCPCost(this);
 
                 foreach (var buff in CraftingBuffs)
                     buff.Step(this);
@@ -275,6 +294,7 @@ namespace FFXIVCraftingSim
 
                 if (action.AddsBuff)
                     action.AddBuff(this);
+
                 FinishedStep(this, i);
             }
 
@@ -289,9 +309,8 @@ namespace FFXIVCraftingSim
             if (VenerationBuff != null)
                 realEfficiency += efficiency * 0.5;
 
-            efficiency = realEfficiency;
                 int value = (int)((Craftsmanship + 10000d) / (CurrentRecipe.RequiredCraftsmanship + 10000d) * (Craftsmanship * 21 / 100d + 2) * LevelDifference.ProgressFactor / 100d);
-            return (int)(value * efficiency);
+            return (int)(value * realEfficiency);
         }
 
         public int GetQualityIncrease(double efficiency)
@@ -301,35 +320,84 @@ namespace FFXIVCraftingSim
                 realEfficiency += efficiency;
             if (InnovationBuff != null)
                 realEfficiency += efficiency * 0.5;
-            efficiency = realEfficiency;
+            CraftingSimStepSettings settings = GetStepSettings();
+            double conditionMultiplier = 1;
+            if (settings.RecipeCondition == RecipeCondition.Good)
+                conditionMultiplier = 1.5;
+            if (settings.RecipeCondition == RecipeCondition.Excellent)
+                conditionMultiplier = 4;
+            if (settings.RecipeCondition == RecipeCondition.Poor)
+                conditionMultiplier = 0.5;
             ActualControl = Control;
             if (InnerQuietBuff != null)
             {
                 ActualControl += (InnerQuietBuff.Stack - 1) * 0.2 * Control;
             }
-           int value = (int)((ActualControl + 10000d) / (CurrentRecipe.RequiredControl + 10000d) * (ActualControl * 35d / 100d + 35) * LevelDifference.QualityFactor / 100d);
-            return (int)(value * efficiency);
+
+            //13918
+           //int value = (int)((ActualControl + 10000d) / (CurrentRecipe.RequiredControl + 10000d) * (ActualControl * 35d / 100d + 35) * LevelDifference.QualityFactor / 100d);
+
+            double dValue = ((ActualControl + 10000d) / (CurrentRecipe.RequiredControl + 10000d) * (ActualControl * 35d / 100d + 35) * LevelDifference.QualityFactor / 100d);
+            int value = (int)(dValue * conditionMultiplier);
+                return (int)(value * realEfficiency);
+        }
+
+        public CraftingSimStepSettings GetStepSettings()
+        {
+            return StepSettings[Step];
+        }
+
+        public void SetStepSetting(int step, CraftingSimStepSettings settings)
+        {
+            if (settings == null)
+            {
+                StepSettings.Remove(step);
+                return;
+            }
+            StepSettings[step] = settings;
+        }
+
+        public bool CustomRecipe
+        {
+            get
+            {
+                return StepSettings.Values.Any(x => x.RecipeCondition != RecipeCondition.Normal);
+            }
         }
 
         public double Score
         {
             get
             {
-                if (CurrentRecipe == null) return -5000;
+                if (CurrentRecipe == null) return 0;
                 double progress = CurrentProgress;
                 if (progress > CurrentRecipe.MaxProgress)
                     progress = CurrentRecipe.MaxProgress;
-                double result = progress / CurrentRecipe.MaxProgress * 100000;
+                double result = progress * 10000 / CurrentRecipe.MaxProgress;
                 if (progress < CurrentRecipe.MaxProgress)
-                    return result - 5000;
-                double quality = CurrentQuality;
+                    return result;
+                int quality = CurrentQuality;
                 if (quality > CurrentRecipe.MaxQuality)
                     quality = CurrentRecipe.MaxQuality;
-                result += quality / CurrentRecipe.MaxQuality * 100000;
+                result += quality * 10000 / CurrentRecipe.MaxQuality;
+
+                if (quality >= CurrentRecipe.MaxQuality)
+                    result += 5000;
+
+                result += 5000;
+
+                //int maxactionsPenalty = MaxActions * 100 + MaxActions * 3;
+
+                int actionsPenalty = CraftingActionsLength * 10;
+
                 for (int i = 0; i < CraftingActionsLength; i++)
-                {
-                    result -= CraftingActions[i].IsBuff ? 20 : 30;
-                }
+                    actionsPenalty += CraftingActions[i].IsBuff ? 2 : 3;
+
+                result -= actionsPenalty;
+
+                double cpPenalty = 100 - 100 * ((double)CurrentCP / MaxCP);
+
+                result -= cpPenalty;
                 return result; 
             }
         }

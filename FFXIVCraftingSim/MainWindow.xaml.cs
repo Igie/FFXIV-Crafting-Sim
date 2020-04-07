@@ -1,28 +1,21 @@
 ﻿using FFXIVCraftingSim.Actions;
-using FFXIVCraftingSim.Converters;
 using FFXIVCraftingSim.GUI;
 using FFXIVCraftingSim.GUI.Windows;
 using FFXIVCraftingSim.Solving;
 using FFXIVCraftingSim.Stream;
+using FFXIVCraftingSim.Types;
 using FFXIVCraftingSim.Types.GameData;
-using SaintCoinach;
-using SaintCoinach.Xiv;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
-using System.Windows.Documents;
 using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 using System.Windows.Threading;
 
 namespace FFXIVCraftingSim
@@ -33,6 +26,8 @@ namespace FFXIVCraftingSim
     public partial class MainWindow : Window
     {
         private CraftingSim Sim { get; set; }
+
+        private CraftingActionContainer[] AvailableActions { get; set; }
 
         private bool FoodIsHQ { get; set; }
         private bool TeaIsHQ { get; set; }
@@ -56,7 +51,7 @@ namespace FFXIVCraftingSim
             PlayerStatsFromTextToSim();
             UpdateCraftingText();
             if (Sim != null)
-                Sim.ExectueActions();
+                Sim.ExecuteActions();
         }
 
 
@@ -82,87 +77,110 @@ namespace FFXIVCraftingSim
 
         private void G_Loaded()
         {
-
-            if (File.Exists("Settings.db"))
+            try
             {
-                DataStream s = new DataStream(File.ReadAllBytes("Settings.db"));
-                int recipeId = s.ReadInt();
-
-
-                Dispatcher.Invoke(() =>
+                if (File.Exists("Settings.db"))
                 {
-                    TextBoxCrafterLevel.Text = s.ReadInt().ToString();
-                    TextBoxCrafterCraftsmanship.Text = s.ReadInt().ToString();
-                    TextBoxCrafterControl.Text = s.ReadInt().ToString();
-                    TextBoxCrafterMaxCP.Text = s.ReadInt().ToString();
-                });
+                    DataStream s = new DataStream(File.ReadAllBytes("Settings.db"));
+                    int recipeId = s.ReadInt();
 
-                int id = s.ReadInt();
-                if (id > 0)
-                {
-                    SelectedFood = G.Items[id];
-                    FoodIsHQ = s.ReadByte() == 1;
+
+                    Dispatcher.Invoke(() =>
+                    {
+                        TextBoxCrafterLevel.Text = s.ReadInt().ToString();
+                        TextBoxCrafterCraftsmanship.Text = s.ReadInt().ToString();
+                        TextBoxCrafterControl.Text = s.ReadInt().ToString();
+                        TextBoxCrafterMaxCP.Text = s.ReadInt().ToString();
+                    });
+                    Dispatcher.Invoke(() => {
+                        CheckBoxIsSpecialist.IsChecked = s.ReadByte() == 1;
+                        });
+                    
+                    int id = s.ReadInt();
+                    if (id > 0)
+                    {
+                        SelectedFood = G.Items[id];
+                        FoodIsHQ = s.ReadByte() == 1;
+                    }
+                    id = s.ReadInt();
+                    if (id > 0)
+                    {
+                        SelectedTea = G.Items[id];
+                        TeaIsHQ = s.ReadByte() == 1;
+                    }
+                    Dispatcher.Invoke(() =>
+                    {
+                        ApplyFoodBuffs();
+                    });
+                    List<CraftingAction> actions = new List<CraftingAction>();
+                    while (s.Position < s.Length)
+                    {
+                        try
+                        {
+                            actions.Add(CraftingAction.CraftingActions[s.ReadInt()]);
+                        }
+                        catch { }
+                    }
+
+                    PlayerStatsFromTextToSim();
+                    LoadRecipe(G.Recipes.FirstOrDefault(x => x.Id == recipeId));
+
+                    Sim.AddActions(actions);
+                    s.Flush();
+                    s.Close();
                 }
-                id = s.ReadInt();
-                if (id > 0)
-                {
-                    SelectedTea = G.Items[id];
-                    TeaIsHQ = s.ReadByte() == 1;
-                }
-                ApplyFoodBuffs();
-                List<CraftingAction> actions = new List<CraftingAction>();
-                while (s.Position < s.Length)
-                {
-                    actions.Add(CraftingAction.CraftingActions[s.ReadInt()]);
-                }
 
-                PlayerStatsFromTextToSim();
-                LoadRecipe(G.Recipes.FirstOrDefault(x => x.Id == recipeId));
-
-                Sim.AddActions(actions);
-                s.Flush();
-                s.Close();
+                if (Solver == null)
+                {
+                    var actions = CraftingAction.CraftingActions.Select(x => (ushort)x.Key).ToList();
+                    Solver = new Solver(Sim, actions.ToArray(), 12);
+                    Solver.GenerationRan += Solver_GenerationRan;
+                }
             }
-
-            if (Solver == null)
+            catch (Exception ee)
             {
-                var actions = CraftingAction.CraftingActions.Select(x => (ushort)x.Key).ToList();
-                actions.Add(0);
-                Solver = new Solver(Sim, actions.ToArray(), 12);
-                Solver.GenerationRan += Solver_GenerationRan;
+                Debugger.Break();
             }
-            //G.Loaded -= G_Loaded;
         }
 
-       
+
 
         private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
-            if (File.Exists("Settings.db"))
-                File.Delete("Settings.db");
-            if (Sim == null || Sim.CurrentRecipe == null)
-                return;
-            DataStream s = new DataStream();
-            Sim.CraftsmanshipBuff = 0;
-            Sim.ControlBuff = 0;
-            Sim.MaxCPBuff = 0;
-            s.WriteInt(Sim.CurrentRecipe.Id);
-            s.WriteInt(Sim.Level);
-            s.WriteInt(Sim.Craftsmanship);
-            s.WriteInt(Sim.Control);
-            s.WriteInt(Sim.MaxCP);
-            s.WriteInt(SelectedFood == null ? 0 : SelectedFood.Id);
-            if (SelectedFood != null)
-                s.WriteByte(FoodIsHQ ? (byte)1 : (byte)0);
-            s.WriteInt(SelectedTea == null ? 0 : SelectedTea.Id);
-            if (SelectedTea != null)
-                s.WriteByte(TeaIsHQ ? (byte)1 : (byte)0);
-            var actions = Sim.GetCraftingActions();
-            foreach (var action in actions)
-                s.WriteInt(action.Id);
-            File.WriteAllBytes("Settings.db", s.GetBytes());
-            s.Flush();
-            s.Close();
+            try
+            {
+                if (File.Exists("Settings.db"))
+                    File.Delete("Settings.db");
+
+                G.WriteRecipeRotations();
+                if (Sim == null || Sim.CurrentRecipe == null)
+                    return;
+                DataStream s = new DataStream();
+                Sim.CraftsmanshipBuff = 0;
+                Sim.ControlBuff = 0;
+                Sim.MaxCPBuff = 0;
+                s.WriteInt(Sim.CurrentRecipe.Id);
+                s.WriteInt(Sim.Level);
+                s.WriteInt(Sim.Craftsmanship);
+                s.WriteInt(Sim.Control);
+                s.WriteInt(Sim.MaxCP);
+                s.WriteByte(CheckBoxIsSpecialist.IsChecked == true ? (byte)1 : (byte)0);
+                s.WriteInt(SelectedFood == null ? 0 : SelectedFood.Id);
+                if (SelectedFood != null)
+                    s.WriteByte(FoodIsHQ ? (byte)1 : (byte)0);
+                s.WriteInt(SelectedTea == null ? 0 : SelectedTea.Id);
+                if (SelectedTea != null)
+                    s.WriteByte(TeaIsHQ ? (byte)1 : (byte)0);
+                var actions = Sim.GetCraftingActions();
+                foreach (var action in actions)
+                    s.WriteInt(action.Id);
+                File.WriteAllBytes("Settings.db", s.GetBytes());
+                s.Flush();
+                s.Close();
+            }
+            catch(Exception ee) {
+                Debugger.Break();
+            }
         }
 
         public void SetStatus(string status = null, double? value = null, double? min = null, double? max = null)
@@ -213,8 +231,8 @@ namespace FFXIVCraftingSim
                 SelectedFood = window.SelectedItem;
                 if (SelectedFood != null)
                     FoodIsHQ = window.IsHQ;
-                    
-                 
+
+
                 ApplyFoodBuffs();
             }
         }
@@ -228,11 +246,16 @@ namespace FFXIVCraftingSim
                 SelectedTea = window.SelectedItem;
                 if (SelectedTea != null)
                     TeaIsHQ = window.IsHQ;
-                   
+
 
                 ApplyFoodBuffs();
                 UpdateCraftingText();
             }
+        }
+
+        private void SpecialistCheckChanged(object sender, RoutedEventArgs e)
+        {
+            ApplyFoodBuffs();
         }
 
         private void ApplyFoodBuffs()
@@ -245,13 +268,21 @@ namespace FFXIVCraftingSim
             int currentControl = Sim.Control;
             int currentMaxCP = Sim.MaxCP;
 
+            if (CheckBoxIsSpecialist.IsChecked == true)
+            {
+                Sim.CraftsmanshipBuff += 20;
+                Sim.ControlBuff += 20;
+                Sim.MaxCPBuff += 15;
+            }
+
             if (SelectedFood != null)
             {
                 Dispatcher.Invoke(() => ButtonFood.Content = (FoodIsHQ ? "HQ" : "NQ") + ' ' + SelectedFood.Name);
-                Sim.CraftsmanshipBuff = SelectedFood.FoodInfo.GetCraftsmanshipBuff(currentCraftsmanship, FoodIsHQ);
-                Sim.ControlBuff = SelectedFood.FoodInfo.GetControlBuff(currentControl, FoodIsHQ);
-                Sim.MaxCPBuff = SelectedFood.FoodInfo.GetMaxCPBuff(currentMaxCP, FoodIsHQ);
-            } else
+                Sim.CraftsmanshipBuff += SelectedFood.FoodInfo.GetCraftsmanshipBuff(currentCraftsmanship, FoodIsHQ);
+                Sim.ControlBuff += SelectedFood.FoodInfo.GetControlBuff(currentControl, FoodIsHQ);
+                Sim.MaxCPBuff += SelectedFood.FoodInfo.GetMaxCPBuff(currentMaxCP, FoodIsHQ);
+            }
+            else
                 Dispatcher.Invoke(() => ButtonFood.Content = "None");
 
             if (SelectedTea != null)
@@ -264,7 +295,7 @@ namespace FFXIVCraftingSim
             else
                 Dispatcher.Invoke(() => ButtonTea.Content = "None");
             UpdatePlayerStatsText();
-            Sim.ExectueActions();
+            Sim.ExecuteActions();
         }
 
         private List<CraftingActionContainer> CurrentActions { get; set; } = new List<CraftingActionContainer>();
@@ -285,13 +316,15 @@ namespace FFXIVCraftingSim
                 OldQuality = 0;
             }
             var currentAction = sim.CraftingActions[index];
-            CraftingActionContainer container = new CraftingActionContainer(G.Actions[currentAction.Name].Images[sim.CurrentRecipe.ClassJob], currentAction);
+            CraftingActionContainer container = new CraftingActionContainer(G.Actions[currentAction.Name].Images[sim.CurrentRecipe.ClassJob], Sim, currentAction);
 
             container.ProgressIncreased = sim.CurrentProgress - OldProgress;
             container.QualityIncreased = sim.CurrentQuality - OldQuality;
             OldProgress = sim.CurrentProgress;
             OldQuality = sim.CurrentQuality;
             CurrentActions.Add(container);
+
+          
         }
 
         private void Sim_FinishedExecution(CraftingSim sim)
@@ -313,7 +346,17 @@ namespace FFXIVCraftingSim
                         list[i].Source = null;
                 }
                 ListViewCraftingBuffs.ItemsSource = sim.CraftingBuffs.Select(x => new CraftingBuffContainer(G.Actions[x.Name].Images[sim.CurrentRecipe.ClassJob], x)).ToList();
+
+                if (AvailableActions != null)
+                for (int i = 0; i < AvailableActions.Length; i++)
+                {
+                    AvailableActions[i].Update();
+                }
             });
+            for (int i = 0; i < CurrentActions.Count; i++)
+            {
+                CurrentActions[i].Update();
+            }
             UpdateCraftingText();
         }
 
@@ -339,13 +382,28 @@ namespace FFXIVCraftingSim
                 ProgressBarQuality.Minimum = 0;
                 ProgressBarQuality.Maximum = recipeInfo.MaxQuality;
                 ProgressBarQuality.Value = 0;
-                ListViewActions.ItemsSource = null;
+
+                ListViewAvailableIncreasesProgress.ItemsSource = null;
+                ListViewAvailableIncreasesQuality.ItemsSource = null;
+                ListViewAvailableAddsBuff.ItemsSource = null;
+                ListViewAvailableOther.ItemsSource = null;
+
                 Sim.SetRecipe(recipeInfo);
 
-                var availableActions = CraftingAction.CraftingActions.Values.Select(x => new CraftingActionContainer(G.Actions[x.Name].Images[recipeInfo.ClassJob], x)).ToArray();
+                AvailableActions = CraftingAction.CraftingActions.Values.Select(x => new CraftingActionContainer(G.Actions[x.Name].Images[recipeInfo.ClassJob], Sim, x)).ToArray();
 
-                ListViewAvailable.ItemsSource = availableActions;
+                ListViewAvailableIncreasesProgress.ItemsSource = AvailableActions.Where(x => x.Action.IncreasesProgress);
+                ListViewAvailableIncreasesQuality.ItemsSource = AvailableActions.Where(x => x.Action.IncreasesQuality);
+                ListViewAvailableAddsBuff.ItemsSource = AvailableActions.Where(x => x.Action.AddsBuff);
+                ListViewAvailableOther.ItemsSource = AvailableActions.Where(x => !x.Action.IncreasesProgress && !x.Action.IncreasesQuality && !x.Action.AddsBuff);
+
+                CollectionView view = null;
+                view = (CollectionView)CollectionViewSource.GetDefaultView(ListViewAvailableIncreasesProgress.ItemsSource);
+                view.SortDescriptions.Clear();
+                view.SortDescriptions.Add(new System.ComponentModel.SortDescription("ProgressIncrease", System.ComponentModel.ListSortDirection.Descending));
             });
+
+            UpdateRotationsCount();
         }
         public void PlayerStatsFromTextToSim()
         {
@@ -410,31 +468,53 @@ namespace FFXIVCraftingSim
             {
                 CurrentActions?.Clear();
                 Sim.RemoveActionAt(ListViewActions.SelectedIndex);
-
-
             }
         }
 
         private void ListViewAvailable_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
         {
 
-            CraftingActionContainer item = ListViewAvailable.SelectedItem as CraftingActionContainer;
+            CraftingActionContainer item = (sender as ListView)?.SelectedItem as CraftingActionContainer;
             if (item != null)
                 Sim.AddActions(item.Action);
 
         }
+
+        private PopulationsWindow PopulationsWindow { get; set; }
+
         private void ButtonFindBest_Click(object sender, RoutedEventArgs e)
         {
             if (Solver == null) return;
             Solver.Continue = !Solver.Continue;
             ButtonFindBest.Content = Solver.Continue ? "Stop" : "Find Best";
             if (Solver.Continue)
-                Solver.Start();
+            {
+                if (sender == ButtonFindBest)
+                    Solver.Start(false);
+                else
+                    Solver.Start(true);
+                PopulationsWindow = new PopulationsWindow();
+                PopulationsWindow.AddSolver(Solver);
+                PopulationsWindow.Closed += (x, y) =>
+                {
+                    PopulationsWindow = null;
+                };
+                PopulationsWindow.Show();
+            }
+            else
+            {
+                if (PopulationsWindow != null && PopulationsWindow.ShowActivated)
+                {
+                    PopulationsWindow.Close();
+                    PopulationsWindow = null;
+                }
+            }
+
         }
 
         private void Solver_GenerationRan(Solving.GeneticAlgorithm.Population obj)
         {
-            LabelIterations.Dispatcher.Invoke(() =>
+            Dispatcher.Invoke(() =>
             {
                 LabelIterations.Content = "Iterations: " + Solver?.Iterations;
             });
@@ -455,6 +535,51 @@ namespace FFXIVCraftingSim
 
         }
 
-       
+        private void RotationsDatabaseClicked(object sender, RoutedEventArgs e)
+        {
+
+        }
+
+        private void ButtonAddToDatabase_Click(object sender, RoutedEventArgs e)
+        {
+            if (Sim == null || Sim.CurrentRecipe == null)
+                return;
+            G.AddRotationFromSim(Sim);
+            UpdateRotationsCount();
+        }
+
+        private void ButtonChooseRotation_Click(object sender, RoutedEventArgs e)
+        {
+            if (Sim == null || Sim.CurrentRecipe == null)
+                return;
+            RotationsDatabaseWindow window = new RotationsDatabaseWindow();
+            window.AddRotations(Sim.CurrentRecipe);
+            if (window.ShowDialog() == true)
+            {
+                Sim.RemoveActions();
+                Sim.AddActions(window.RotationInfo.Rotation.Array.Select(x => CraftingAction.CraftingActions[x]));
+            }
+        }
+
+        public void UpdateRotationsCount()
+        {
+            if (!G.RecipeRotations.ContainsKey(Sim.CurrentRecipe.GetAbstractData()))
+                Debugger.Break();
+            Dispatcher.Invoke(() => LabelRotationsInDatabase.Content = "Rotations in Database: " + G.RecipeRotations[Sim.CurrentRecipe.GetAbstractData()].Count);
+        }
+
+
+        private void ButtonEditStepSettings_Click(object sender, RoutedEventArgs e)
+        {
+            RecipeSettingsWindow window = new RecipeSettingsWindow();
+            window.SetCraftingSim(Sim);
+            window.ShowDialog();
+
+        }
+
+        private void ClearAllClicked(object sender, RoutedEventArgs e)
+        {
+            Sim.RemoveActions();
+        }
     }
 }

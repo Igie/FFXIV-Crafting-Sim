@@ -1,0 +1,57 @@
+﻿<Window x:Class="FFXIVCraftingSim.GUI.Windows.RotationsDatabaseWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:FFXIVCraftingSim.GUI.Windows" xmlns:conv="clr-namespace:FFXIVCraftingSim.Converters"
+        mc:Ignorable="d"
+        Title="Select Rotation" Height="450" Width="1025" WindowStyle="ToolWindow" >
+    <Grid>
+        <ListView x:Name="ListViewRotations" FontFamily="Consolas" MouseDoubleClick="ListViewRotations_MouseDoubleClick">
+            <ListView.ContextMenu>
+                <ContextMenu>
+                    <MenuItem Header="Remove" Click="ContextMenuItemRemoveClicked" />
+                </ContextMenu>
+            </ListView.ContextMenu>
+          
+            <ListView.View>
+                <GridView>
+
+                    <GridViewColumn Width="120" Header="Max Craftsmanship" DisplayMemberBinding="{Binding RotationInfo.MaxCraftsmanship}" />
+                    <GridViewColumn Width="120" Header="Min Craftsmanship" DisplayMemberBinding="{Binding RotationInfo.MinCraftsmanship}" />
+                    <GridViewColumn Width="80" Header="Min Control" DisplayMemberBinding="{Binding RotationInfo.MinControl}" />
+                    <GridViewColumn Width="50" Header="CP" DisplayMemberBinding="{Binding RotationInfo.CP}" />
+                    <GridViewColumn Width="130" Header="Score" DisplayMemberBinding="{Binding RotationInfo.Score}" />
+                    <GridViewColumn Width ="Auto" Header="Rotation Time" DisplayMemberBinding="{Binding RotationInfo.RotationTime}" />
+                    <GridViewColumn Width ="Auto" Header="Rotation" >
+                        <GridViewColumn.CellTemplate>
+                            <DataTemplate>
+                                <ListBox ItemsSource="{Binding Images}">
+                                    <ListBox.ItemsPanel>
+                                        <ItemsPanelTemplate>
+                                            <StackPanel Orientation="Horizontal" />
+                                        </ItemsPanelTemplate>
+                                    </ListBox.ItemsPanel>
+                                    <ListBox.ItemContainerStyle>
+                                        <Style TargetType="ListBoxItem">
+                                            <Setter Property="BorderThickness" Value="1"/>
+                                            <Setter Property="Margin" Value="0"/>
+                                            <Setter Property="Padding" Value="0"/>
+                                        </Style>
+                                    </ListBox.ItemContainerStyle>
+                                    <ListBox.ItemTemplate>
+                                        <DataTemplate DataType="CraftingActionContainer">
+                                            <Grid Height="25">
+                                                <Image Width="25" Height="25" Source ="{Binding BitmapSource}"  VerticalAlignment="Top" />
+                                            </Grid>
+                                        </DataTemplate>
+                                    </ListBox.ItemTemplate>
+                                </ListBox>
+                            </DataTemplate>
+                        </GridViewColumn.CellTemplate>
+                    </GridViewColumn>
+                </GridView>
+            </ListView.View>
+        </ListView>
+    </Grid>
+</Window>

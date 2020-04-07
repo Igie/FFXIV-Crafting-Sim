@@ -12,12 +12,12 @@ namespace FFXIVCraftingSim.Solving
     public class Solver
     {
         public CraftingSim Sim { get; private set; }
-        private double SimScore { get; set; }
         public ushort[] AvailableActions { get; private set; }
 
         public int TaskCount { get; private set; }
         public Population[] Populations { get; private set; }
         private int BestIndex { get; set; }
+        private Chromosome BestChromosome { get; set; }
         private Task[] Tasks { get; set; }
 
         public int Iterations { get; private set; }
@@ -25,7 +25,12 @@ namespace FFXIVCraftingSim.Solving
         public bool Continue { get; set; }
         private bool NeedsUpdate { get; set; }
 
+        private bool LeaveStartingActions { get; set; }
+
         public event Action<Population> GenerationRan = delegate { };
+        public event Action<CraftingAction[]> SolutionFound = delegate { };
+
+        public bool CopyBestRotationToPopulations { get; set; }
 
         public Solver(CraftingSim sim, ushort[] availableActions, int taskCount)
         {
@@ -33,17 +38,27 @@ namespace FFXIVCraftingSim.Solving
             AvailableActions = availableActions;
             TaskCount = taskCount;
             Tasks = new Task[TaskCount];
+
+            CopyBestRotationToPopulations = false;
+
+            LeaveStartingActions = false;
+
             Populations = new Population[TaskCount];
             for (int i = 0; i < TaskCount; i++)
-                Populations[i] = new Population(Sim.Clone(), 250, CraftingSim.MaxActions, AvailableActions);
+                Populations[i] = new Population(i, Sim.Clone(), 150, CraftingSim.MaxActions, AvailableActions);
         }
 
-        public void Start()
+        public void Start(bool leaveStartingActions = false)
         {
             Continue = true;
-            SimScore = Sim.Score;
             NeedsUpdate = false;
             Iterations = 0;
+            LeaveStartingActions = leaveStartingActions;
+            BestChromosome = new Chromosome(Sim.Clone(), AvailableActions,CraftingSim.MaxActions, Sim.GetCraftingActions().Select(x => (ushort)x.Id).ToArray());
+
+            for (int i = 0; i < Populations.Length; i++)
+                Populations[i].PendingBest = BestChromosome;
+
             Task.Run(() =>
             {
                 Task.Run(UpdateLoop);
@@ -59,7 +74,7 @@ namespace FFXIVCraftingSim.Solving
         private void InnerStart(object index)
         {
             int i = (int)index;
-            Populations[i].Reevaluate(Sim);
+            Populations[i].Reevaluate(Sim, LeaveStartingActions);
             while (Continue)
             {
                 Populations[i].RunOnce();
@@ -67,11 +82,11 @@ namespace FFXIVCraftingSim.Solving
                 GenerationRan(Populations[i]);
                 
                 var best = Populations[i].Best;
-                if (SimScore < best.Fitness && !NeedsUpdate)
+                if (BestChromosome.Fitness < best.Fitness && !NeedsUpdate)
                 {
+                    BestChromosome = best.Clone();
                     BestIndex = i;
                     NeedsUpdate = true;
-                    SimScore = best.Fitness.Value;
                 }
             }
         }
@@ -83,8 +98,14 @@ namespace FFXIVCraftingSim.Solving
                 if (NeedsUpdate)
                 {
                     Sim.RemoveActions();
-                    Sim.AddActions(Populations[BestIndex].Best.Values.Where(y => y > 0).Select(x => CraftingAction.CraftingActions[x]));
+                    Sim.AddActions(BestChromosome.Values.Where(y => y > 0).Select(x => CraftingAction.CraftingActions[x]));
                     NeedsUpdate = false;
+                   
+                    if (CopyBestRotationToPopulations)
+                    for (int i = 0; i < Populations.Length; i++)
+                        Populations[i].PendingBest = BestChromosome;
+
+                    G.AddRotationFromSim(Sim);
                 }
             }
         }

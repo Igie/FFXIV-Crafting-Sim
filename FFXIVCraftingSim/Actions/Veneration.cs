@@ -16,7 +16,7 @@ namespace FFXIVCraftingSim.Actions
         public override bool IncreasesProgress => false;
         public override bool IncreasesQuality => false;
         protected override int DurabilityCost => 0;
-        public override int CPCost => 18;
+        protected override int CPCost => 18;
         public override bool AsFirstActionOnly => false;
         public override bool AddsBuff => true;
 

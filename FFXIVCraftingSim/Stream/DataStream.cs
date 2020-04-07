@@ -73,6 +73,16 @@ namespace FFXIVCraftingSim.Stream
             return BitConverter.ToUInt32(ReadBytes(4), 0);
         }
 
+        public void WriteDouble(double value)
+        {
+            WriteBytes(BitConverter.GetBytes(value));
+        }
+
+        public double ReadDouble()
+        {
+            return BitConverter.ToDouble(ReadBytes(8), 0);
+        }
+
         public string ReadString()
         {
             return Encoding.UTF8.GetString(ReadBytes(ReadUShort()));

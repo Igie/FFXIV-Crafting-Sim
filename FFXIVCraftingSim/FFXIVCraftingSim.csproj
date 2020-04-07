@@ -56,6 +56,28 @@
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
     <Prefer32Bit>true</Prefer32Bit>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>bin\x64\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <DebugType>full</DebugType>
+    <PlatformTarget>x64</PlatformTarget>
+    <LangVersion>7.3</LangVersion>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+    <Prefer32Bit>true</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">
+    <OutputPath>bin\x64\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <Optimize>true</Optimize>
+    <DebugType>pdbonly</DebugType>
+    <PlatformTarget>x64</PlatformTarget>
+    <LangVersion>7.3</LangVersion>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+    <Prefer32Bit>true</Prefer32Bit>
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Data" />
@@ -78,8 +100,14 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="Actions\BrandOfTheElements.cs" />
+    <Compile Include="Actions\Buffs\NameOfTheElementsBuff.cs" />
+    <Compile Include="Actions\Buffs\ObserveBuff.cs" />
     <Compile Include="Actions\DelicateSynthesis.cs" />
+    <Compile Include="Actions\FocusedTouch.cs" />
+    <Compile Include="Actions\FocusedSynthesis.cs" />
     <Compile Include="Actions\Groundwork.cs" />
+    <Compile Include="Actions\NameOfTheElements.cs" />
     <Compile Include="Actions\PreparatoryTouch.cs" />
     <Compile Include="Actions\Reflect.cs" />
     <Compile Include="Actions\PrudentTouch.cs" />
@@ -103,19 +131,30 @@
     <Compile Include="Actions\MastersMend.cs" />
     <Compile Include="Actions\GreatStrides.cs" />
     <Compile Include="Actions\Innovation.cs" />
+    <Compile Include="Actions\Observe.cs" />
     <Compile Include="Actions\Veneration.cs" />
     <Compile Include="Actions\WasteNotII.cs" />
     <Compile Include="Actions\WasteNot.cs" />
     <Compile Include="Converters\BitmapSourceExtentions.cs" />
     <Compile Include="Converters\CraftActionToImageConverter.cs" />
+    <Compile Include="Converters\CraftingActionTypeToNameConverter.cs" />
     <Compile Include="CraftingSim.cs" />
     <Compile Include="GUI\CraftingActionContainer.cs" />
     <Compile Include="GUI\CraftingBuffContainer.cs" />
     <Compile Include="GUI\Windows\FoodSelectionWindow.xaml.cs">
       <DependentUpon>FoodSelectionWindow.xaml</DependentUpon>
     </Compile>
+    <Compile Include="GUI\Windows\PopulationsWindow.xaml.cs">
+      <DependentUpon>PopulationsWindow.xaml</DependentUpon>
+    </Compile>
     <Compile Include="GUI\Windows\RecipeSelectionWindow.xaml.cs">
       <DependentUpon>RecipeSelectionWindow.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="GUI\Windows\RecipeSettingsWindow.xaml.cs">
+      <DependentUpon>RecipeSettingsWindow.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="GUI\Windows\RotationsDatabaseWindow.xaml.cs">
+      <DependentUpon>RotationsDatabaseWindow.xaml</DependentUpon>
     </Compile>
     <Compile Include="Solving\ArrayCounter.cs" />
     <Compile Include="Solving\CraftingActionSequence.cs" />
@@ -125,15 +164,30 @@
     <Compile Include="Solving\PossibleCraftingAction.cs" />
     <Compile Include="Solving\Solver.cs" />
     <Compile Include="Stream\DataStream.cs" />
+    <Compile Include="Types\CraftingSimStepSettings.cs" />
     <Compile Include="Types\GameData\ActionInfo.cs" />
     <Compile Include="Types\GameData\ItemInfo.cs" />
     <Compile Include="Types\GameData\LevelDifferenceInfo.cs" />
     <Compile Include="Types\GameData\RecipeInfo.cs" />
+    <Compile Include="Types\ExtendedArray.cs" />
+    <Compile Include="Types\RotationInfo.cs" />
     <Page Include="GUI\Windows\FoodSelectionWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
+    <Page Include="GUI\Windows\PopulationsWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="GUI\Windows\RecipeSelectionWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="GUI\Windows\RecipeSettingsWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="GUI\Windows\RotationsDatabaseWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

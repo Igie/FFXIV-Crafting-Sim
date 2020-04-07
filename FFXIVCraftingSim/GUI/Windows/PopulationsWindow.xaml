@@ -1,0 +1,34 @@
+﻿<Window x:Class="FFXIVCraftingSim.GUI.Windows.PopulationsWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:FFXIVCraftingSim.GUI.Windows"
+        mc:Ignorable="d"
+        Title="Populations" Height="450" Width="800">
+    <Grid>
+        <ListView x:Name="ListViewPopulations" Margin="0,0,392,0">
+            <ListView.View>
+                <GridView>
+                    <GridViewColumn Width="100" DisplayMemberBinding="{Binding Index}">
+                        <GridViewColumn.Header>
+                            <GridViewColumnHeader Content="Index" Click="GridViewColumnHeaderClicked" />
+                        </GridViewColumn.Header>
+                    </GridViewColumn>
+                    <GridViewColumn Width="150" DisplayMemberBinding="{Binding BestScore}">
+                        <GridViewColumn.Header>
+                            <GridViewColumnHeader Content="Score" Click="GridViewColumnHeaderClicked" />
+                        </GridViewColumn.Header>
+                    </GridViewColumn>
+                    <GridViewColumn Width="100" DisplayMemberBinding="{Binding CurrentGeneration}" >
+                        <GridViewColumn.Header>
+                            <GridViewColumnHeader Content="Iterations" Click="GridViewColumnHeaderClicked" />
+                        </GridViewColumn.Header>
+                    </GridViewColumn>
+                </GridView>
+            </ListView.View>
+        </ListView>
+        <CheckBox Content="Copy Best Rotation to Other Populations" Margin="0,4,153,0" VerticalAlignment="Top" IsChecked="{Binding CopyBestRotationToPopulations, Mode=TwoWay}" HorizontalAlignment="Right" Width="234" />
+
+    </Grid>
+</Window>

@@ -38,5 +38,61 @@ namespace FFXIVCraftingSim.Types.GameData
                 return $"{Id} {Name} {Level}";
             }
         }
+
+        public AbstractRecipeInfo GetAbstractData()
+        {
+            return new AbstractRecipeInfo
+            {
+                Level = Level,
+                RequiredCraftsmanship = RequiredCraftsmanship,
+                RequiredControl = RequiredControl,
+                Durability = Durability,
+                MaxProgress = MaxProgress,
+                MaxQuality = MaxQuality
+            };
+        }
+    }
+
+    public class AbstractRecipeInfo :IEquatable<AbstractRecipeInfo>
+    {
+        public int Level { get; set; }
+        public int RequiredCraftsmanship { get; set; }
+        public int RequiredControl { get; set; }
+
+        public int Durability { get; set; }
+        public int MaxProgress { get; set; }
+        public int MaxQuality { get; set; }
+
+        public override int GetHashCode()
+        {
+            int hash = 3301;
+            hash ^= Level;
+            hash ^= RequiredCraftsmanship * 13;
+            hash ^= RequiredControl * 13;
+            hash ^= Durability * 13;
+            hash ^= MaxProgress * 13;
+            hash ^= MaxQuality * 13;
+            return hash;
+        }
+
+        public override bool Equals(object obj)
+        {
+            if (ReferenceEquals(this, obj))
+                return true;
+            return Equals(obj is AbstractRecipeInfo);
+        }
+
+        public bool Equals(AbstractRecipeInfo other)
+        {
+            if (other is null)
+                return false;
+            return
+                Level == other.Level &&
+                RequiredCraftsmanship == other.RequiredCraftsmanship &&
+                RequiredControl == other.RequiredControl &&
+                Durability == other.Durability &&
+                MaxProgress == other.MaxProgress &&
+                MaxQuality == other.MaxQuality;
+        }
     }
 }

@@ -3,13 +3,13 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:FFXIV_Crafting_Sim"
+        xmlns:local="clr-namespace:FFXIVCraftingSim"
         xmlns:System="clr-namespace:System;assembly=mscorlib" 
         xmlns:conv="clr-namespace:FFXIVCraftingSim.Converters" 
         xmlns:Actions="clr-namespace:FFXIVCraftingSim.Actions" 
         x:Class="FFXIVCraftingSim.MainWindow"
         mc:Ignorable="d"
-        Title="Crafting Simulator" Height="555.152" Width="1024" Loaded="Window_Loaded" Closing="Window_Closing"
+        Title="Crafting Simulator" Height="800" Width="1024" Loaded="Window_Loaded" Closing="Window_Closing"
     >
     <Window.Resources>
         <Style x:Key="LabelStyle" TargetType="{x:Type Label}">
@@ -31,10 +31,12 @@
             <Setter Property="Height" Value="25" />
             <Setter Property="HorizontalContentAlignment" Value="Left" />
         </Style>
+
+        <conv:CraftingActionTypeToNameConverter x:Key="CraftingActionTypeToNameConverter"  x:Name="CraftingActionTypeToNameConverter" />
     </Window.Resources>
     <Grid>
         <Menu Height="23" VerticalAlignment="Top">
-            <MenuItem Header="Rotations...">
+            <MenuItem Width="100" Header="Rotations...">
                 <MenuItem Header="Add to rotations pool" />
             </MenuItem>
             <MenuItem Header="Reload Database" Width="100" Height="23" Click="ReloadDatabaseClicked" />
@@ -61,6 +63,7 @@
                 <Button x:Name="ButtonFood" Height="25" Margin="33,110,0,45" Grid.ColumnSpan="2" Content="None" Click="ButtonFood_Click" />
                 <Label Content="Tea:" Margin="0,135,0,0" Style="{StaticResource LabelStyle}" />
                 <Button x:Name="ButtonTea" Height="25" Margin="33,135,0,20" Grid.ColumnSpan="2" Content="None" Click="ButtonTea_Click" />
+                <CheckBox x:Name="CheckBoxIsSpecialist" Content="Is Specialist" HorizontalAlignment="Left" Margin="0,159,0,0" VerticalAlignment="Top" Width="88" Checked="SpecialistCheckChanged" Unchecked="SpecialistCheckChanged"/>
             </Grid>
         </GroupBox>
         <GroupBox Header="Recipe Stats" HorizontalAlignment="Left" Height="206" Margin="0,229,0,0" VerticalAlignment="Top" FontFamily="Consolas" Width="266">
@@ -101,18 +104,18 @@
                 <Separator Height="2" Margin="0,43,0,0" VerticalAlignment="Top"/>
                 <Label x:Name="LabelDurability" Content="Durability: 40/40" HorizontalAlignment="Left" Margin="10,46,0,0" VerticalAlignment="Top" FontFamily="Consolas"/>
                 <Label x:Name="LabelCP" Content="CP: 541/541" HorizontalAlignment="Left" Margin="10,70,0,0" VerticalAlignment="Top" FontFamily="Consolas"/>
-                <Label Content="Progress:" HorizontalAlignment="Left" Margin="210,46,0,0" VerticalAlignment="Top" FontFamily="Consolas"/>
-                <Label Content="Quality:" HorizontalAlignment="Left" Margin="216,70,0,0" VerticalAlignment="Top" FontFamily="Consolas"/>
-                <ProgressBar x:Name="ProgressBarProgress" HorizontalAlignment="Left" Height="22" Margin="279,50,0,0" VerticalAlignment="Top" Width="100"/>
-                <ProgressBar x:Name="ProgressBarQuality" HorizontalAlignment="Left" Height="22" Margin="279,72,0,0" VerticalAlignment="Top" Width="100"/>
-                <Label x:Name="LabelProgress" Content="10000/10000" Margin="384,48,0,0" VerticalAlignment="Top" FontFamily="Consolas"/>
-                <Label x:Name="LabelQuality" Content="10000/10000" Margin="384,72,0,0" VerticalAlignment="Top" FontFamily="Consolas"/>
+                <Label Content="Progress:" HorizontalAlignment="Left" Margin="147,48,0,0" VerticalAlignment="Top" FontFamily="Consolas"/>
+                <Label Content="Quality:" HorizontalAlignment="Left" Margin="153,72,0,0" VerticalAlignment="Top" FontFamily="Consolas"/>
+                <ProgressBar x:Name="ProgressBarProgress" HorizontalAlignment="Left" Height="22" Margin="216,48,0,0" VerticalAlignment="Top" Width="100"/>
+                <ProgressBar x:Name="ProgressBarQuality" HorizontalAlignment="Left" Height="22" Margin="216,72,0,0" VerticalAlignment="Top" Width="100"/>
+                <Label x:Name="LabelProgress" Content="10000/10000" Margin="321,48,0,0" VerticalAlignment="Top" FontFamily="Consolas" HorizontalAlignment="Left" Width="180"/>
+                <Label x:Name="LabelQuality" Content="10000/10000" Margin="321,72,0,0" VerticalAlignment="Top" FontFamily="Consolas" HorizontalAlignment="Left" Width="180"/>
                 <Separator Height="2" Margin="0,99,0,0" VerticalAlignment="Top"/>
-                <Label Content="Actions:" HorizontalAlignment="Left" Margin="10,99,0,0" VerticalAlignment="Top" FontFamily="Consolas"/>
                 <ListView x:Name="ListViewActions" Height="83" Margin="0,123,0,0" VerticalAlignment="Top" FontFamily="Consolas" ScrollViewer.VerticalScrollBarVisibility="Disabled" HorizontalContentAlignment="Left" VerticalContentAlignment="Top" MouseLeftButtonUp="ListViewActions_MouseLeftButtonUp" >
                     <ListView.ContextMenu>
                         <ContextMenu>
                             <MenuItem Header="Copy Macro" Click="CopyMacroClicked"/>
+                            <MenuItem Header="Clear All" Click="ClearAllClicked"/>
                         </ContextMenu>
                     </ListView.ContextMenu>
                     <ListView.ItemsPanel>
@@ -120,35 +123,131 @@
                             <StackPanel Orientation="Horizontal"/>
                         </ItemsPanelTemplate>
                     </ListView.ItemsPanel>
+                    <ListView.ItemContainerStyle>
+                        <Style TargetType="ListViewItem">
+                            <Setter Property="BorderThickness" Value="0"/>
+                            <Setter Property="Margin" Value="0"/>
+                            <Setter Property="Padding" Value="0"/>
+                        </Style>
+                    </ListView.ItemContainerStyle>
                     <ListView.ItemTemplate>
                         <DataTemplate DataType="CraftingActionContainer">
-                            <Grid Height="70">
-                                <Border BorderBrush="Black" Background="#FFD8D8D8" BorderThickness="1" ToolTip="{Binding Action.Name}">
-                                    <Image Width="30" Height="30" Source ="{Binding Source}" Margin="0,25,0,0" VerticalAlignment="Top" />
+                            <Grid Height="70"  ToolTip="{Binding Action.Name}">
+                                <Border BorderBrush="#FF494949" Background="#FFD8D8D8" BorderThickness="1">
+                                    <Image Width="32" Height="30" Source ="{Binding Source}" Margin="0,25,0,0" VerticalAlignment="Top" />
                                 </Border>
-                                <TextBlock Height="26" Margin="0" VerticalAlignment="Top" Text="{Binding Path=IncreaseString}" FontSize="11" FontFamily="Consolas" LineHeight="0" />
-                                <TextBlock Height="15" Margin="0" Padding="5,0" Text="{Binding Path=Action.CPCost}" VerticalAlignment="Bottom" />
+                                <TextBlock Height="26" Margin="0" Padding="1,0" VerticalAlignment="Top" Text="{Binding Path=IncreaseString}" FontSize="11" FontFamily="Consolas" LineHeight="0" />
+                                <TextBlock Height="15" Margin="0" Padding="5,0" Text="{Binding Path=CPCost}" VerticalAlignment="Bottom" />
                             </Grid>
                         </DataTemplate>
                     </ListView.ItemTemplate>
                 </ListView>
-                <Label Content="Available Actions:" HorizontalAlignment="Left" Margin="3,211,0,0" VerticalAlignment="Top" FontFamily="Consolas"/>
-                <ListView x:Name="ListViewAvailable" Margin="0,240,0,10" MouseLeftButtonUp="ListViewAvailable_MouseLeftButtonUp" ScrollViewer.HorizontalScrollBarVisibility="Disabled"  HorizontalContentAlignment="Left" VerticalContentAlignment="Top">
-                    <ListView.ItemsPanel>
-                        <ItemsPanelTemplate>
-                            <WrapPanel Orientation="Horizontal"/>
-                        </ItemsPanelTemplate>
-                    </ListView.ItemsPanel>
-                    <ListView.ItemTemplate>
-                        <DataTemplate>
-                            <Grid>
-                                <Border BorderBrush="Black" Background="#FFD8D8D8" BorderThickness="1" ToolTip="{Binding Path=Action.Name}">
-                                    <Image Width="35" Height="35" Source ="{Binding Source}"/>
-                                </Border>
-                            </Grid>
-                        </DataTemplate>
-                    </ListView.ItemTemplate>
-                </ListView>
+                <GroupBox Header="Available Actions" Margin="0,211,0,0">
+                    <StackPanel Orientation="Vertical">
+                        <HeaderedContentControl Header="Increases Progress:">
+                            <ListView x:Name="ListViewAvailableIncreasesProgress" MouseLeftButtonUp="ListViewAvailable_MouseLeftButtonUp" ScrollViewer.HorizontalScrollBarVisibility="Disabled"  HorizontalContentAlignment="Left" VerticalContentAlignment="Top">
+                                <ListView.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                        <WrapPanel Orientation="Horizontal"/>
+                                    </ItemsPanelTemplate>
+                                </ListView.ItemsPanel>
+                                <ListView.ItemContainerStyle>
+                                    <Style TargetType="ListViewItem">
+                                        <Setter Property="BorderThickness" Value="1"/>
+                                        <Setter Property="Margin" Value="0"/>
+                                        <Setter Property="Padding" Value="0"/>
+                                    </Style>
+                                </ListView.ItemContainerStyle>
+                                <ListView.ItemTemplate>
+                                    <DataTemplate>
+                                        <Grid Height="55" Width="35">
+                                            <Border BorderBrush="Black" Background="#FFD8D8D8" BorderThickness="1" ToolTip="{Binding Path=Action.Name}">
+                                                <Image Width="35" Height="35" Margin="0,20,0,0" Source ="{Binding Source}"/>
+                                            </Border>
+                                            <TextBlock Width="35" Height="Auto" Padding="2,5" Text="{Binding ProgressIncrease}" Margin="0,0,0,35" FontFamily="Consolas" FontSize="11" />
+                                        </Grid>
+                                    </DataTemplate>
+                                </ListView.ItemTemplate>
+                            </ListView>
+                        </HeaderedContentControl>
+                        <HeaderedContentControl Header="Increases Quality:">
+                            <ListView x:Name="ListViewAvailableIncreasesQuality" MouseLeftButtonUp="ListViewAvailable_MouseLeftButtonUp" ScrollViewer.HorizontalScrollBarVisibility="Disabled"  HorizontalContentAlignment="Left" VerticalContentAlignment="Top">
+                                <ListView.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                        <WrapPanel Orientation="Horizontal"/>
+                                    </ItemsPanelTemplate>
+                                </ListView.ItemsPanel>
+                                <ListView.ItemContainerStyle>
+                                    <Style TargetType="ListViewItem">
+                                        <Setter Property="BorderThickness" Value="1"/>
+                                        <Setter Property="Margin" Value="0"/>
+                                        <Setter Property="Padding" Value="0"/>
+                                    </Style>
+                                </ListView.ItemContainerStyle>
+                                <ListView.ItemTemplate>
+                                    <DataTemplate>
+                                        <Grid Height="55" Width="35">
+                                            <Border BorderBrush="Black" Background="#FFD8D8D8" BorderThickness="1" ToolTip="{Binding Path=Action.Name}">
+                                                <Image Width="35" Height="35" Margin="0,20,0,0" Source ="{Binding Source}"/>
+                                            </Border>
+                                            <TextBlock Width="35" Height="Auto" Padding="2,5" Text="{Binding QualityIncrease}" Margin="0,0,0,35" FontFamily="Consolas" FontSize="11" />
+                                        </Grid>
+                                    </DataTemplate>
+                                </ListView.ItemTemplate>
+                            </ListView>
+                        </HeaderedContentControl>
+                        <HeaderedContentControl Header="Adds Buff:">
+                            <ListView x:Name="ListViewAvailableAddsBuff" MouseLeftButtonUp="ListViewAvailable_MouseLeftButtonUp" ScrollViewer.HorizontalScrollBarVisibility="Disabled"  HorizontalContentAlignment="Left" VerticalContentAlignment="Top">
+                                <ListView.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                        <WrapPanel Orientation="Horizontal"/>
+                                    </ItemsPanelTemplate>
+                                </ListView.ItemsPanel>
+                                <ListView.ItemContainerStyle>
+                                    <Style TargetType="ListViewItem">
+                                        <Setter Property="BorderThickness" Value="1"/>
+                                        <Setter Property="Margin" Value="0"/>
+                                        <Setter Property="Padding" Value="0"/>
+                                    </Style>
+                                </ListView.ItemContainerStyle>
+                                <ListView.ItemTemplate>
+                                    <DataTemplate>
+                                        <Grid>
+                                            <Border BorderBrush="Black" Background="#FFD8D8D8" BorderThickness="1" ToolTip="{Binding Path=Action.Name}">
+                                                <Image Width="35" Height="35" Source ="{Binding Source}"/>
+                                            </Border>
+                                        </Grid>
+                                    </DataTemplate>
+                                </ListView.ItemTemplate>
+                            </ListView>
+                        </HeaderedContentControl>
+                        <HeaderedContentControl Header="Other:">
+                            <ListView x:Name="ListViewAvailableOther" MouseLeftButtonUp="ListViewAvailable_MouseLeftButtonUp" ScrollViewer.HorizontalScrollBarVisibility="Disabled"  HorizontalContentAlignment="Left" VerticalContentAlignment="Top">
+                                <ListView.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                        <WrapPanel Orientation="Horizontal"/>
+                                    </ItemsPanelTemplate>
+                                </ListView.ItemsPanel>
+                                <ListView.ItemContainerStyle>
+                                    <Style TargetType="ListViewItem">
+                                        <Setter Property="BorderThickness" Value="1"/>
+                                        <Setter Property="Margin" Value="0"/>
+                                        <Setter Property="Padding" Value="0"/>
+                                    </Style>
+                                </ListView.ItemContainerStyle>
+                                <ListView.ItemTemplate>
+                                    <DataTemplate>
+                                        <Grid>
+                                            <Border BorderBrush="Black" Background="#FFD8D8D8" BorderThickness="1" ToolTip="{Binding Path=Action.Name}">
+                                                <Image Width="35" Height="35" Source ="{Binding Source}"/>
+                                            </Border>
+                                        </Grid>
+                                    </DataTemplate>
+                                </ListView.ItemTemplate>
+                            </ListView>
+                        </HeaderedContentControl>
+                    </StackPanel>
+                </GroupBox>
                 <ListView x:Name="ListViewCraftingBuffs" Height="38" Margin="355,0,0,0" VerticalAlignment="Top" ScrollViewer.HorizontalScrollBarVisibility="Hidden" ScrollViewer.VerticalScrollBarVisibility="Hidden"  HorizontalContentAlignment="Left" VerticalContentAlignment="Top">
                     <ListView.ItemsPanel>
                         <ItemsPanelTemplate>
@@ -166,12 +265,17 @@
                         </DataTemplate>
                     </ListView.ItemTemplate>
                 </ListView>
+                <Label x:Name="LabelRotationsInDatabase" Content="Rotations in Database:" Margin="519,48,0,0" VerticalAlignment="Top" FontFamily="Consolas" HorizontalAlignment="Left" />
+                <Button x:Name="ButtonAddToDatabase" Content="Add to Database" HorizontalAlignment="Left" Margin="519,72,0,0" VerticalAlignment="Top" Width="114" Click="ButtonAddToDatabase_Click" FontFamily="Consolas"/>
+                <Button x:Name="ButtonChooseRotation" Content="Choose" HorizontalAlignment="Left" Margin="638,72,0,0" VerticalAlignment="Top" Width="75" FontFamily="Consolas" Click="ButtonChooseRotation_Click"/>
+                <Button x:Name="ButtonEditStepSettings" Content="Edit Step Settings" HorizontalAlignment="Left" Margin="0,101,0,0" VerticalAlignment="Top" Width="146" FontFamily="Consolas" Click="ButtonEditStepSettings_Click"/>
             </Grid>
 
         </GroupBox>
         <Label x:Name="LabelScore" Content="Score:" HorizontalAlignment="Left" Margin="10,442,0,0" FontFamily="Consolas" Height="24" VerticalAlignment="Top" />
         <Button x:Name="ButtonFindBest" Content="Find Best" HorizontalAlignment="Left" Margin="10,471,0,0" Width="75" FontFamily="Consolas" Click="ButtonFindBest_Click" Height="18" VerticalAlignment="Top"/>
         <Label x:Name="LabelIterations" Content="" HorizontalAlignment="Left" Margin="138,442,0,0" VerticalAlignment="Top" Width="128"/>
+        <Button x:Name="ButtonFindBestForActions" Content="Find Best With Actions" HorizontalAlignment="Left" Margin="90,471,0,0" VerticalAlignment="Top" Width="161" FontFamily="Consolas" Height="18" Click="ButtonFindBest_Click"/>
 
 
 

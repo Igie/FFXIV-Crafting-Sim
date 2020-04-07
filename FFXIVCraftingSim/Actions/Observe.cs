@@ -7,27 +7,27 @@ using System.Threading.Tasks;
 
 namespace FFXIVCraftingSim.Actions
 {
-    public class Innovation : CraftingAction
+    public class Observe : CraftingAction
     {
-        public override int Id => 9;
+        public override int Id => 20;
 
-        public override string Name => "Innovation";
+        public override string Name => "Observe";
         public override bool IsBuff => true;
         public override bool IncreasesProgress => false;
         public override bool IncreasesQuality => false;
         protected override int DurabilityCost => 0;
-        protected override int CPCost => 18;
+        protected override int CPCost => 7;
         public override bool AsFirstActionOnly => false;
         public override bool AddsBuff => true;
 
         public override void AddBuff(CraftingSim sim)
         {
-            if (sim.InnovationBuff == null)
+            if (sim.ObserveBuff == null)
             {
-                sim.InnovationBuff = new InnovationBuff();
-                sim.CraftingBuffs.Add(sim.InnovationBuff);
+                sim.ObserveBuff = new ObserveBuff();
+                sim.CraftingBuffs.Add(sim.ObserveBuff);
             }
-            sim.InnovationBuff.Stack = 4;
+            sim.ObserveBuff.Stack = 1;
         }
     }
 }
