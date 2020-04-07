@@ -14,9 +14,13 @@ It uses local files to store items, recipes, images, your best rotations and sta
 There are still many bugs and I am working on this project everyday. Do help me with anything from program layout to efficiency of coding and optimization.
 
 Known bugs:
+
 Current rotation images disappear when changing crafter stats.
+
 Sometimes when searching for rotation with already defined rotation, the defined rotation disappears.
 
 Features:
+
 Implementing success rate (currently uses actions with 100% rate).
+
 Implementing fractal rotations (list of actions which don't necessarily finish recipe but rather increases progress/quality at high efficiency (most increase at smallest cost). Later they can be joined to make full rotation.
