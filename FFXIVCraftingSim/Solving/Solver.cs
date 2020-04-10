@@ -32,27 +32,53 @@ namespace FFXIVCraftingSim.Solving
 
         public bool CopyBestRotationToPopulations { get; set; }
 
-        public Solver(CraftingSim sim, ushort[] availableActions, int taskCount)
+        public Solver(CraftingSim sim, ushort[] availableActions)
         {
             Sim = sim;
             AvailableActions = availableActions;
-            TaskCount = taskCount;
-            Tasks = new Task[TaskCount];
+           
 
             CopyBestRotationToPopulations = false;
-
             LeaveStartingActions = false;
-
-            Populations = new Population[TaskCount];
-            for (int i = 0; i < TaskCount; i++)
-                Populations[i] = new Population(i, Sim.Clone(), 150, CraftingSim.MaxActions, AvailableActions);
         }
 
-        public void Start(bool leaveStartingActions = false)
+
+        public void Start(int taskCount = 8, int chromosomeCount = 150, bool leaveStartingActions = false)
         {
             Continue = true;
             NeedsUpdate = false;
             Iterations = 0;
+
+            TaskCount = taskCount;
+
+            Tasks = new Task[TaskCount];
+
+            if (Populations == null)
+            {
+                Populations = new Population[TaskCount];
+                for (int i = 0; i < TaskCount; i++)
+                    Populations[i] = new Population(i, Sim.Clone(), chromosomeCount, CraftingSim.MaxActions, AvailableActions);
+            }
+
+            if (Populations.Length != TaskCount)
+            {
+                Population[] newPopulations = new Population[TaskCount];
+                Array.Copy(Populations, newPopulations, Math.Min(TaskCount, Populations.Length));
+                Populations = newPopulations;
+            }
+
+            for (int i = 0; i < TaskCount; i++)
+            {
+                if (Populations[i] == null)
+                {
+                    Populations[i] = new Population(i, Sim.Clone(), chromosomeCount, CraftingSim.MaxActions, AvailableActions);
+                }
+                else if (Populations[i].Chromosomes.Length != chromosomeCount)
+                {
+                    Populations[i].ChangeSize(chromosomeCount);
+                }
+            }
+
             LeaveStartingActions = leaveStartingActions;
             BestChromosome = new Chromosome(Sim.Clone(), AvailableActions,CraftingSim.MaxActions, Sim.GetCraftingActions().Select(x => (ushort)x.Id).ToArray());
 

@@ -133,7 +133,7 @@ namespace FFXIVCraftingSim
                 if (Solver == null)
                 {
                     var actions = CraftingAction.CraftingActions.Select(x => (ushort)x.Key).ToList();
-                    Solver = new Solver(Sim, actions.ToArray(), 12);
+                    Solver = new Solver(Sim, actions.ToArray());
                     Solver.GenerationRan += Solver_GenerationRan;
                 }
             }
@@ -487,12 +487,21 @@ namespace FFXIVCraftingSim
             if (Solver == null) return;
             Solver.Continue = !Solver.Continue;
             ButtonFindBest.Content = Solver.Continue ? "Stop" : "Find Best";
+
+            int taskCount = 8;
+            int chromosomeCount = 150;
+            int val = 0;
+            if (int.TryParse(TextBoxTaskCount.Text, out val))
+                taskCount = val;
+            if (int.TryParse(TextBoxChromosomeCount.Text, out val))
+                chromosomeCount = val;
+
             if (Solver.Continue)
             {
                 if (sender == ButtonFindBest)
-                    Solver.Start(false);
+                    Solver.Start(taskCount, chromosomeCount, false);
                 else
-                    Solver.Start(true);
+                    Solver.Start(taskCount, chromosomeCount, true);
                 PopulationsWindow = new PopulationsWindow();
                 PopulationsWindow.AddSolver(Solver);
                 PopulationsWindow.Closed += (x, y) =>

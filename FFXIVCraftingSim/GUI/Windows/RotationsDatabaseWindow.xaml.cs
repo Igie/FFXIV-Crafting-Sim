@@ -41,19 +41,17 @@ namespace FFXIVCraftingSim.GUI.Windows
             ClassJobInfo = recipeInfo.ClassJob;
             AbstractRecipeInfo = recipeInfo.GetAbstractData();
             
-             if (!Dispatcher.CheckAccess())
-                Debugger.Break();
             Dispatcher.Invoke(() => {
                 var rotations = G.RecipeRotations[AbstractRecipeInfo].Select(x => new RotationInfoContainer(x, ClassJobInfo));
-                ListViewRotations.ItemsSource = rotations;
+                DataGridRotations.ItemsSource = rotations;
             });
         }
 
-        private void ListViewRotations_MouseDoubleClick(object sender, MouseButtonEventArgs e)
+        private void DataGridRotations_MouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
-            if (ListViewRotations.SelectedValue == null)
+            if (DataGridRotations.SelectedValue == null || e.LeftButton != MouseButtonState.Pressed)
                 return;
-            RotationInfo = (ListViewRotations.SelectedItem as RotationInfoContainer).RotationInfo;
+            RotationInfo = (DataGridRotations.SelectedItem as RotationInfoContainer).RotationInfo;
             if (RotationInfo == null)
                 return;
 
@@ -63,29 +61,13 @@ namespace FFXIVCraftingSim.GUI.Windows
 
         private void ContextMenuItemRemoveClicked(object sender, RoutedEventArgs e)
         {
-            if (ListViewRotations.SelectedItem == null)
+            if (DataGridRotations.SelectedItem == null)
                 return;
-            G.RemoveRotation(AbstractRecipeInfo, (ListViewRotations.SelectedItem as RotationInfoContainer).RotationInfo);
-            var rotations = G.RecipeRotations[AbstractRecipeInfo];
-            ListViewRotations.ItemsSource = null;
-            ListViewRotations.ItemsSource = rotations;
-            ListViewRotations.Items.Refresh();
-        }
-
-        private void ListBoxLoaded(object sender, RoutedEventArgs e)
-        {
-            ListBox listBox = sender as ListBox;
-            if (listBox == null)
-                return;
-            var images = (listBox.DataContext as RotationInfoContainer).Images;
-            if (!Dispatcher.CheckAccess())
-                Debugger.Break();
-            listBox.Dispatcher.Invoke(() =>
-            {
-
-                //listBox.ItemsSource = (listBox.DataContext as RotationInfoContainer).Images;
+            G.RemoveRotation(AbstractRecipeInfo, (DataGridRotations.SelectedItem as RotationInfoContainer).RotationInfo);
+            Dispatcher.Invoke(() => {
+                var rotations = G.RecipeRotations[AbstractRecipeInfo].Select(x => new RotationInfoContainer(x, ClassJobInfo));
+                DataGridRotations.ItemsSource = rotations;
             });
-
         }
     }
 

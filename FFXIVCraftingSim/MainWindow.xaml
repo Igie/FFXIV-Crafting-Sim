@@ -275,7 +275,11 @@
         <Label x:Name="LabelScore" Content="Score:" HorizontalAlignment="Left" Margin="10,442,0,0" FontFamily="Consolas" Height="24" VerticalAlignment="Top" />
         <Button x:Name="ButtonFindBest" Content="Find Best" HorizontalAlignment="Left" Margin="10,471,0,0" Width="75" FontFamily="Consolas" Click="ButtonFindBest_Click" Height="18" VerticalAlignment="Top"/>
         <Label x:Name="LabelIterations" Content="" HorizontalAlignment="Left" Margin="138,442,0,0" VerticalAlignment="Top" Width="128"/>
-        <Button x:Name="ButtonFindBestForActions" Content="Find Best With Actions" HorizontalAlignment="Left" Margin="90,471,0,0" VerticalAlignment="Top" Width="161" FontFamily="Consolas" Height="18" Click="ButtonFindBest_Click"/>
+        <Button x:Name="ButtonFindBestForActions" Content="Find Best With Actions" HorizontalAlignment="Left" Margin="90,471,0,0" VerticalAlignment="Top" Width="176" FontFamily="Consolas" Height="18" Click="ButtonFindBest_Click"/>
+        <Label Content="Task Count:" HorizontalAlignment="Left" Margin="10,496,0,0" VerticalContentAlignment="Center" VerticalAlignment="Top" Width="147" FontFamily="Consolas"/>
+        <TextBox x:Name="TextBoxTaskCount" HorizontalAlignment="Left" Height="24" Margin="162,496,0,0" TextWrapping="Wrap" Text="12" VerticalContentAlignment="Center" VerticalAlignment="Top" Width="104"/>
+        <Label Content="Chromosome Count:" HorizontalAlignment="Left" Margin="10,525,0,0" VerticalContentAlignment="Center" VerticalAlignment="Top" Width="147" FontFamily="Consolas"/>
+        <TextBox x:Name="TextBoxChromosomeCount" HorizontalAlignment="Left" Height="24" Margin="162,525,0,0" TextWrapping="Wrap" Text="150" VerticalContentAlignment="Center" VerticalAlignment="Top" Width="104"/>
 
 
 

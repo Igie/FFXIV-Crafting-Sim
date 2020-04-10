@@ -121,6 +121,12 @@ namespace FFXIVCraftingSim.Solving.GeneticAlgorithm
             {
                 if (PendingBest != null)
                 {
+                    if (LeaveInitialValues)
+                    {
+                        Array.Copy(InitialValues, PendingBest.Values, InitialValues.Length);
+                        PendingBest.Fitness = PendingBest.Evaluate();
+                    }
+
                     if (!Contains(PendingBest) && Chromosomes[Chromosomes.Length - 1].Fitness < PendingBest.Fitness)
                     {
                         Chromosomes[Chromosomes.Length - 1] = PendingBest.Clone();
@@ -223,6 +229,19 @@ namespace FFXIVCraftingSim.Solving.GeneticAlgorithm
              //   Array.Copy(clone.Values, chromosome.Values, ChromosomeSize);
             //    chromosome.Fitness = chromosome.Evaluate();
             //}
+        }
+
+        public void ChangeSize(int newSize)
+        {
+            MaxSize = newSize;
+
+            Chromosome[] newArray = new Chromosome[MaxSize];
+            Array.Copy(Chromosomes, newArray, Math.Min(MaxSize, Chromosomes.Length));
+            Chromosomes = newArray;
+
+            for (int i = 0; i < MaxSize; i++)
+                if (Chromosomes[i] is null)
+                    Chromosomes[i] = new Chromosome(Sim, PossibleValues, ChromosomeSize);
         }
 
         public bool Contains(Chromosome chromosome)

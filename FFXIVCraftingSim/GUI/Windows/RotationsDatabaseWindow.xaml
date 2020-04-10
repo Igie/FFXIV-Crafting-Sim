@@ -7,51 +7,45 @@
         mc:Ignorable="d"
         Title="Select Rotation" Height="450" Width="1025" WindowStyle="ToolWindow" >
     <Grid>
-        <ListView x:Name="ListViewRotations" FontFamily="Consolas" MouseDoubleClick="ListViewRotations_MouseDoubleClick">
-            <ListView.ContextMenu>
+        <DataGrid Name="DataGridRotations" AutoGenerateColumns="False" IsReadOnly="True" MouseDoubleClick="DataGridRotations_MouseDoubleClick" SelectionMode="Single" RowDetailsVisibilityMode="Visible" FontFamily="Consolas">
+            <DataGrid.ContextMenu>
                 <ContextMenu>
                     <MenuItem Header="Remove" Click="ContextMenuItemRemoveClicked" />
                 </ContextMenu>
-            </ListView.ContextMenu>
-          
-            <ListView.View>
-                <GridView>
-
-                    <GridViewColumn Width="120" Header="Max Craftsmanship" DisplayMemberBinding="{Binding RotationInfo.MaxCraftsmanship}" />
-                    <GridViewColumn Width="120" Header="Min Craftsmanship" DisplayMemberBinding="{Binding RotationInfo.MinCraftsmanship}" />
-                    <GridViewColumn Width="80" Header="Min Control" DisplayMemberBinding="{Binding RotationInfo.MinControl}" />
-                    <GridViewColumn Width="50" Header="CP" DisplayMemberBinding="{Binding RotationInfo.CP}" />
-                    <GridViewColumn Width="130" Header="Score" DisplayMemberBinding="{Binding RotationInfo.Score}" />
-                    <GridViewColumn Width ="Auto" Header="Rotation Time" DisplayMemberBinding="{Binding RotationInfo.RotationTime}" />
-                    <GridViewColumn Width ="Auto" Header="Rotation" >
-                        <GridViewColumn.CellTemplate>
-                            <DataTemplate>
-                                <ListBox ItemsSource="{Binding Images}">
-                                    <ListBox.ItemsPanel>
-                                        <ItemsPanelTemplate>
-                                            <StackPanel Orientation="Horizontal" />
-                                        </ItemsPanelTemplate>
-                                    </ListBox.ItemsPanel>
-                                    <ListBox.ItemContainerStyle>
-                                        <Style TargetType="ListBoxItem">
-                                            <Setter Property="BorderThickness" Value="1"/>
-                                            <Setter Property="Margin" Value="0"/>
-                                            <Setter Property="Padding" Value="0"/>
-                                        </Style>
-                                    </ListBox.ItemContainerStyle>
-                                    <ListBox.ItemTemplate>
-                                        <DataTemplate DataType="CraftingActionContainer">
-                                            <Grid Height="25">
-                                                <Image Width="25" Height="25" Source ="{Binding BitmapSource}"  VerticalAlignment="Top" />
-                                            </Grid>
-                                        </DataTemplate>
-                                    </ListBox.ItemTemplate>
-                                </ListBox>
+            </DataGrid.ContextMenu>
+            <DataGrid.Columns>
+                <DataGridTextColumn Width="120" Header="Max Craftsmanship" Binding="{Binding RotationInfo.MaxCraftsmanship}" />
+                <DataGridTextColumn Width="120" Header="Min Craftsmanship" Binding="{Binding RotationInfo.MinCraftsmanship}" />
+                <DataGridTextColumn Width="80" Header="Min Control" Binding="{Binding RotationInfo.MinControl}" />
+                <DataGridTextColumn Width="50" Header="CP" Binding="{Binding RotationInfo.CP}" />
+                <DataGridTextColumn Width="130" Header="Score" Binding="{Binding RotationInfo.Score}" />
+                <DataGridTextColumn Width ="Auto" Header="Rotation Time" Binding="{Binding RotationInfo.RotationTime}" />
+            </DataGrid.Columns>
+            <DataGrid.RowDetailsTemplate>
+                <DataTemplate>
+                    <ListBox ItemsSource="{Binding Images}">
+                        <ListBox.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <StackPanel Orientation="Horizontal" />
+                            </ItemsPanelTemplate>
+                        </ListBox.ItemsPanel>
+                        <ListBox.ItemContainerStyle>
+                            <Style TargetType="ListBoxItem">
+                                <Setter Property="BorderThickness" Value="1"/>
+                                <Setter Property="Margin" Value="0"/>
+                                <Setter Property="Padding" Value="0"/>
+                            </Style>
+                        </ListBox.ItemContainerStyle>
+                        <ListBox.ItemTemplate>
+                            <DataTemplate DataType="CraftingActionContainer">
+                                <Grid Height="20">
+                                    <Image Width="20" Height="20" Source ="{Binding BitmapSource}"  VerticalAlignment="Top" />
+                                </Grid>
                             </DataTemplate>
-                        </GridViewColumn.CellTemplate>
-                    </GridViewColumn>
-                </GridView>
-            </ListView.View>
-        </ListView>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+                </DataTemplate>
+            </DataGrid.RowDetailsTemplate>
+        </DataGrid>
     </Grid>
 </Window>
