@@ -8,7 +8,7 @@ namespace FFXIVCraftingSim.Actions
 {
     public class ByregotsBlessing : CraftingAction
     {
-        public override int Id => 11;
+        public override ushort Id => 11;
 
         public override string Name => "Byregot's Blessing";
         public override bool IsBuff => false;

@@ -5,17 +5,26 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:FFXIVCraftingSim.GUI.Windows"
         mc:Ignorable="d"
-        Title="Select Recipe" Height="400" Width="405" WindowStyle="ToolWindow" FontFamily="Consolas" Loaded="Window_Loaded">
+        Title="Select Recipe" Height="400" Width="625" WindowStyle="ToolWindow" FontFamily="Consolas" Loaded="Window_Loaded">
+
     <Grid>
-        <TextBox x:Name="TextBoxSearchString" Padding="4,4" Height="23" TextWrapping="NoWrap" VerticalAlignment="Top" TextChanged="SearchTextChanged"/>
-        <ListView x:Name="ListViewRecipes" Margin="0,23,0,0" MouseDoubleClick="MouseDoubleClickRecipe">
-            <ListView.View>
-                <GridView>
-                    <GridViewColumn Width="50" Header="Id" DisplayMemberBinding="{Binding Id}" />
-                    <GridViewColumn Width="80" Header="Level" DisplayMemberBinding="{Binding Level}" />
-                    <GridViewColumn Width="200" Header="Name" DisplayMemberBinding="{Binding Name}" />
-                </GridView>
-            </ListView.View>
-        </ListView>
+        <Grid HorizontalAlignment="Stretch" Height="50" VerticalAlignment="Top">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition/>
+                <ColumnDefinition/>
+            </Grid.ColumnDefinitions>
+            <TextBox x:Name="TextBoxSearchStringName" Width="Auto" HorizontalAlignment="Stretch" Padding="4,4" TextWrapping="NoWrap" TextChanged="SearchTextChanged" Margin="0,24,0,0"/>
+            <TextBox x:Name="TextBoxSearchIngredient" Padding="4,4" TextWrapping="NoWrap" TextChanged="SearchTextChanged" Grid.Column="1" Margin="0,24,0,0"/>
+            <Label Content="Name Search:" HorizontalAlignment="Left" VerticalAlignment="Top"/>
+            <Label Content="Ingredient Search:" Grid.Column="1" HorizontalAlignment="Left" VerticalAlignment="Top"/>
+        </Grid>
+        <DataGrid x:Name="DataGridRecipes" Margin="0,50,0,0" IsReadOnly="True" MouseDoubleClick="MouseDoubleClickRecipe" AutoGenerateColumns="False" SelectionMode="Single">
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="Id" Width="50" Binding="{Binding Id}"/>
+                <DataGridTextColumn Header="Level" Width="80" Binding="{Binding Level}"/>
+                <DataGridTextColumn Header="Name" Width="200" Binding="{Binding Name}"/>
+            </DataGrid.Columns>
+        </DataGrid>
     </Grid>
+
 </Window>

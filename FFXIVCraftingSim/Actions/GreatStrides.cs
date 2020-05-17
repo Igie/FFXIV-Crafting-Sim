@@ -9,7 +9,7 @@ namespace FFXIVCraftingSim.Actions
 {
     public class GreatStrides : CraftingAction
     {
-        public override int Id => 8;
+        public override ushort Id => 8;
 
         public override string Name => "Great Strides";
         public override bool IsBuff => true;

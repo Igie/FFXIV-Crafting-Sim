@@ -25,7 +25,7 @@ namespace FFXIVCraftingSim.GUI.Windows
     /// </summary>
     public partial class RotationsDatabaseWindow : Window
     {
-        public RotationInfo RotationInfo { get; private set; }
+        public RecipeSolutionInfo RotationInfo { get; private set; }
         private AbstractRecipeInfo AbstractRecipeInfo { get; set; }
 
         public ClassJobInfo ClassJobInfo { get; private set; }
@@ -73,11 +73,11 @@ namespace FFXIVCraftingSim.GUI.Windows
 
     public class RotationInfoContainer
     {
-        public RotationInfo RotationInfo { get; private set; }
+        public RecipeSolutionInfo RotationInfo { get; private set; }
 
         public BitmapSourceContainer[] Images { get; set; }
 
-        public RotationInfoContainer(RotationInfo rotationInfo, ClassJobInfo classJobInfo)
+        public RotationInfoContainer(RecipeSolutionInfo rotationInfo, ClassJobInfo classJobInfo)
         {
             RotationInfo = rotationInfo;
             Images = RotationInfo.Rotation.Array.Select(x=> new BitmapSourceContainer(G.Actions[CraftingAction.CraftingActions[x].Name].Images[classJobInfo])).ToArray();

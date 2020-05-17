@@ -9,8 +9,8 @@ namespace FFXIVCraftingSim.Solving.GeneticAlgorithm
 {
     public class Population
     {
-        private double CrossoverRate = 0.8;
-        private double MutationRate = 0.7;
+        private double CrossoverRate = 0.5;
+        private double MutationRate = 0.1;
 
         public int Index { get; private set; }
         private CraftingSim Sim { get; set; }
@@ -69,51 +69,59 @@ namespace FFXIVCraftingSim.Solving.GeneticAlgorithm
             CurrentGeneration = 0;
         }
 
+        public void AddChromosomes(ushort[][] values, bool sort)
+        {
+            for (int i = 0; i < values.Length; i++)
+                AddChromosome(values[i], sort);
+        }
+
+        public void AddChromosome(ushort[] values, bool sort)
+        {
+            ushort[] newValues = new ushort[values.Length];
+            values.CopyTo(newValues, 0);
+
+            if (InitialValues != null)
+            {
+                InitialValues.CopyTo(newValues, 0);
+            }
+
+            AddChromosome(new Chromosome(Sim, PossibleValues, ChromosomeSize, newValues), sort);
+        }
+
+        public void AddChromosome(Chromosome c, bool sort)
+        {
+            if (Chromosomes[Chromosomes.Length - 1].Fitness < c.Fitness && !Contains(c))
+            {
+                Chromosomes[Chromosomes.Length - 1] = c;
+                if (sort)
+                Array.Sort(Chromosomes);
+            }
+        }
+
         public void RunOnce()
         {
-           
-            for (int i = 0; i < MaxSize / 1.1; i++)
+            int len = Chromosomes.Length;
+            int crossoverParent1 = MaxSize / 4;
+            int crossoverParent2 = Math.Min(3, len);
+            for (int i = 0; i < crossoverParent1; i++)
             {
-                if (GeneticUtils.GetChance(CrossoverRate))
+                int maxParent2 = i + crossoverParent2;
+                for (int j = i + 1; j < maxParent2; j++)
                 {
-                    int i1 = i * 2;
-                    //int i2 = i * 2 + 1;
-                    int i2 = Chromosomes.Length - 1 - i;
-                    Crossover(Chromosomes[0], Chromosomes[i2], i);
+                    Crossover(Chromosomes[i], Chromosomes[j], len - i - 1);
                 }
             }
 
-            for (int i = 0; i < MaxSize / 1.1; i++)
+            Array.Sort(Chromosomes);
+            Best = Chromosomes[0];
+
+
+            int crossoverFromMax = Math.Max(10, MaxSize / 8);
+            for (int i = crossoverFromMax; i < MaxSize; i++)
             {
-                if (GeneticUtils.GetChance(CrossoverRate))
-                {
-                    int i1 = i * 2;
-                    //int i2 = i * 2 + 1;
-                    int i2 = Chromosomes.Length - 1 - i;
-                    Crossover(Chromosomes[1], Chromosomes[i2], i);
-                }
+                Mutation(i);
             }
 
-            for (int i = 0; i < MaxSize / 1.1; i++)
-            {
-                if (GeneticUtils.GetChance(CrossoverRate))
-                {
-                    int i1 = i * 2;
-                    //int i2 = i * 2 + 1;
-                    int i2 = Chromosomes.Length - 1 - i;
-                    Crossover(Chromosomes[i], Chromosomes[i2], i);
-                }
-            }
-
-
-
-            for (int i = 1; i < MaxSize; i++)
-            {
-                if (GeneticUtils.GetChance(MutationRate))
-                {
-                    Mutation(Chromosomes[i]);
-                }
-            }
 
             Array.Sort(Chromosomes);
             Best = Chromosomes[0];
@@ -123,7 +131,7 @@ namespace FFXIVCraftingSim.Solving.GeneticAlgorithm
                 {
                     if (LeaveInitialValues)
                     {
-                        Array.Copy(InitialValues, PendingBest.Values, InitialValues.Length);
+                        InitialValues.CopyTo(PendingBest.Values, 0);
                         PendingBest.Fitness = PendingBest.Evaluate();
                     }
 
@@ -151,9 +159,10 @@ namespace FFXIVCraftingSim.Solving.GeneticAlgorithm
             }
 
 
-            if (NonProgressiveGenerations >= 500)
+            if (NonProgressiveGenerations >= int.MaxValue)
             {
-                for (int i = MaxSize / 2; i < MaxSize; i++)
+                int changeFrom = MaxSize / 10;
+                for (int i = changeFrom; i < MaxSize; i++)
                 {
                     Chromosomes[i] = Chromosomes[i].Clone();
                     if (LeaveInitialValues)
@@ -189,6 +198,7 @@ namespace FFXIVCraftingSim.Solving.GeneticAlgorithm
             Array.Copy(first.Values, index, secondArray, index, size);
             Array.Copy(second.Values, index, firstArray, index, size);
 
+
             Chromosome firstNew = new Chromosome(Sim, PossibleValues, firstArray.Length, firstArray);
             Chromosome secondNew = new Chromosome(Sim, PossibleValues, secondArray.Length, secondArray);
 
@@ -200,35 +210,63 @@ namespace FFXIVCraftingSim.Solving.GeneticAlgorithm
                 secondNew.Fitness = secondNew.Evaluate();
             }
 
-            if (Chromosomes[Chromosomes.Length - 1 - pos].Fitness < firstNew.Fitness && !Contains(firstNew))
-                Chromosomes[Chromosomes.Length - 1 - pos] = firstNew;
+            if (firstNew.Fitness > Chromosomes[pos - 1].Fitness && !Contains(firstNew))
+                Chromosomes[pos - 1] = firstNew;
 
-            if (Chromosomes[Chromosomes.Length - 2 - pos].Fitness < secondNew.Fitness && !Contains(secondNew))
-                Chromosomes[Chromosomes.Length - 2 - pos] = secondNew;
-
+            if (secondNew.Fitness > Chromosomes[pos].Fitness && !Contains(secondNew))
+                Chromosomes[pos] = secondNew;
         }
 
-        public void Mutation(Chromosome chromosome)
-        {   if (chromosome == null) return;
-            int index = GeneticUtils.GetRandom(ChromosomeSize);
-            int end = GeneticUtils.GetRandom((ChromosomeSize - index) / 2) + index;
+        public void Mutation(int cIndex)
+        {
+            Chromosome chromosome = Chromosomes[cIndex];
+            if (chromosome == null) return;
 
-            //Chromosome clone = chromosome.Clone();
+            int type = GeneticUtils.GetRandom(3);
 
-            for (int i = index; i < end; i++)
+            //add random action at index
+            //remove random action
+            //switch places
+            ushort[] newArray = new ushort[chromosome.Values.Length];
+            chromosome.Values.CopyTo(newArray, 0);
+            switch (type)
             {
-                chromosome.Values[i] = PossibleValues.GetRandom();
+                case 0:
+                    int index = GeneticUtils.GetRandom(ChromosomeSize);
+                    int end = GeneticUtils.GetRandom(ChromosomeSize - index) + index;
+
+                    for (int i = index; i < end; i++)
+                    {
+                        newArray[i] = PossibleValues.GetRandom();
+                    }
+
+                    if (LeaveInitialValues)
+                    {
+                        Array.Copy(InitialValues, newArray, InitialValues.Length);
+                    }
+                    break;
+
+                case 1:
+                    newArray[GeneticUtils.GetRandom(ChromosomeSize)] = 0;
+                    break;
+
+                case 2:
+                    int randIndex1 = GeneticUtils.GetRandom(40);
+                    int randIndex2 = GeneticUtils.GetRandom(40);
+                    ushort temp = newArray[randIndex1];
+                    newArray[randIndex1] = newArray[randIndex2];
+                    newArray[randIndex2] = temp;
+                    break;
             }
+
             if (LeaveInitialValues)
             {
-                Array.Copy(InitialValues, chromosome.Values, InitialValues.Length);
+                Array.Copy(InitialValues, newArray, InitialValues.Length);
             }
-            chromosome.Fitness = chromosome.Evaluate();
-            //if (chromosome.Fitness < clone.Fitness && !Contains(clone))
-            //{
-             //   Array.Copy(clone.Values, chromosome.Values, ChromosomeSize);
-            //    chromosome.Fitness = chromosome.Evaluate();
-            //}
+
+            Chromosome newChromosome = new Chromosome(Sim, PossibleValues, ChromosomeSize, newArray);
+            if (newChromosome.Fitness > chromosome.Fitness && !Contains(newChromosome))
+                Chromosomes[cIndex] = newChromosome;
         }
 
         public void ChangeSize(int newSize)
@@ -261,7 +299,7 @@ namespace FFXIVCraftingSim.Solving.GeneticAlgorithm
             ChromosomeSize = DefaultChromosomeSize;
 
 
-            for (int i = 0; i < ChromosomeSize; i++)
+            for (int i = 0; i < MaxSize; i++)
             {
                 if (LeaveInitialValues)
                     Array.Copy(InitialValues, Chromosomes[i].Values, InitialValues.Length);

@@ -9,7 +9,7 @@ namespace FFXIVCraftingSim.Actions
 {
     public class Veneration : CraftingAction
     {
-        public override int Id => 6;
+        public override ushort Id => 6;
 
         public override string Name => "Veneration";
         public override bool IsBuff => true;

@@ -1,0 +1,47 @@
+﻿<Window x:Class="FFXIVCraftingSim.GUI.Windows.PartialRotationWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:FFXIVCraftingSim.GUI.Windows"
+        mc:Ignorable="d"
+        Title="Rotations" Height="450" Width="800" FontFamily="Consolas">
+    <Grid>
+        <DataGrid>
+            <DataGrid.Columns>
+                
+                <DataGridTextColumn Header="Durability" />
+                <DataGridTextColumn Header="CP" />
+                <DataGridTextColumn Header="Progress Gain" />
+                <DataGridTextColumn Header="Quality Gain" />
+                <DataGridTextColumn Header="Time" />
+            </DataGrid.Columns>
+            <DataGrid.RowDetailsTemplate>
+                <DataTemplate>
+                    <ListBox ItemsSource="{Binding Images}">
+                        <ListBox.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <StackPanel Orientation="Horizontal" />
+                            </ItemsPanelTemplate>
+                        </ListBox.ItemsPanel>
+                        <ListBox.ItemContainerStyle>
+                            <Style TargetType="ListBoxItem">
+                                <Setter Property="BorderThickness" Value="1"/>
+                                <Setter Property="Margin" Value="0"/>
+                                <Setter Property="Padding" Value="0"/>
+                            </Style>
+                        </ListBox.ItemContainerStyle>
+                        <ListBox.ItemTemplate>
+                            <DataTemplate DataType="CraftingActionContainer">
+                                <Grid Height="20">
+                                    <Image Width="20" Height="20" Source ="{Binding BitmapSource}"  VerticalAlignment="Top" />
+                                </Grid>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+                </DataTemplate>
+            </DataGrid.RowDetailsTemplate>
+        </DataGrid>
+
+    </Grid>
+</Window>

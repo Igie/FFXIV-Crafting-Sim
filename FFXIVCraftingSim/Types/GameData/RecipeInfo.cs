@@ -31,12 +31,19 @@ namespace FFXIVCraftingSim.Types.GameData
         public int MaxProgress { get; set; }
         public int MaxQuality { get; set; }
 
+        public List<ItemInfo> Ingredients { get; set; }
+
         public string SearchString
         {
             get
             {
                 return $"{Id} {Name} {Level}";
             }
+        }
+
+        public RecipeInfo()
+        {
+            Ingredients = new List<ItemInfo>(10);
         }
 
         public AbstractRecipeInfo GetAbstractData()

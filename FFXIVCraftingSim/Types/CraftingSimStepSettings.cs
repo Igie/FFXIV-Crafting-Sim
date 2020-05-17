@@ -20,13 +20,18 @@ namespace FFXIVCraftingSim.Types
 
     public class CraftingSimStepSettings
     {
-        public int CurrentStep { get; set; }
-
         public RecipeCondition RecipeCondition { get; set; }
 
         public CraftingSimStepSettings()
         {
             RecipeCondition = RecipeCondition.Normal;
+        }
+
+        public CraftingSimStepSettings Clone()
+        {
+            return new CraftingSimStepSettings {
+                RecipeCondition = RecipeCondition
+            };
         }
     }
 }

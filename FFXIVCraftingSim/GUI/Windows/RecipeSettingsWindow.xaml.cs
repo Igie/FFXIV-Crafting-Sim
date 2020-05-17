@@ -33,7 +33,7 @@ namespace FFXIVCraftingSim.GUI.Windows
         public void SetCraftingSim(CraftingSim sim)
         {
             Sim = sim;
-            Settings = sim.StepSettings.Values.ToArray();
+            Settings = sim.StepSettings;
             var actions = Sim.GetCraftingActions();
 
             StepSettingsContainer[] source = new StepSettingsContainer[Settings.Length];

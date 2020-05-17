@@ -9,7 +9,7 @@ namespace FFXIVCraftingSim.Actions
 {
     public class Observe : CraftingAction
     {
-        public override int Id => 20;
+        public override ushort Id => 20;
 
         public override string Name => "Observe";
         public override bool IsBuff => true;

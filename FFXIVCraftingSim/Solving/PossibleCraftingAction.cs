@@ -9,11 +9,11 @@ namespace FFXIVCraftingSim.Solving
 {
     public class PossibleCraftingAction : IEquatable<PossibleCraftingAction>
     {
-        public List<int> Ids { get; private set; }
+        public List<ushort> Ids { get; private set; }
 
-        public PossibleCraftingAction(IEnumerable<int> ids = null)
+        public PossibleCraftingAction(IEnumerable<ushort> ids = null)
         {
-            Ids = new List<int>();
+            Ids = new List<ushort>();
             if (ids != null)
                 Ids.AddRange(ids);
         }
@@ -77,7 +77,7 @@ namespace FFXIVCraftingSim.Solving
             return result;
         }
 
-        public static implicit operator PossibleCraftingAction(int[] actions)
+        public static implicit operator PossibleCraftingAction(ushort[] actions)
         {
             PossibleCraftingAction result = new PossibleCraftingAction(actions);
             return result;

@@ -9,7 +9,7 @@ namespace FFXIVCraftingSim.Actions
 {
     public class WasteNot : CraftingAction
     {
-        public override int Id => 5;
+        public override ushort Id => 5;
 
         public override string Name => "Waste Not";
         public override bool IsBuff => true;

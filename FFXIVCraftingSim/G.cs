@@ -25,7 +25,7 @@ namespace FFXIVCraftingSim
 
         public static List<RecipeInfo> Recipes { get; private set; }
 
-        public static Dictionary<AbstractRecipeInfo, List<RotationInfo>> RecipeRotations { get; private set; }
+        public static Dictionary<AbstractRecipeInfo, List<RecipeSolutionInfo>> RecipeRotations { get; private set; }
         public static Dictionary<int, ItemInfo> Items { get; private set; }
         public static Dictionary<string, ActionInfo> Actions { get; private set; }
 
@@ -45,8 +45,9 @@ namespace FFXIVCraftingSim
             if (InitTask == null || InitTask.IsCompleted)
                 InitTask = Task.Run(() =>
                 {
-                    ReadRecipes();
                     ReadItems();
+                    ReadRecipes();
+                    
                     ReadActions();
                     ReadLevelDifferences();
                     ReadRecipeRotations();
@@ -62,8 +63,9 @@ namespace FFXIVCraftingSim
                     {
                         if (!InitTask.IsCompleted)
                             InitTask.Wait();
-                        ReadRecipes(true);
                         ReadItems(true);
+                        ReadRecipes(true);
+                        
                         ReadActions(true);
                         ReadLevelDifferences(true);
                         ReadRecipeRotations(true);
@@ -98,6 +100,11 @@ namespace FFXIVCraftingSim
                         MaxProgress = s.ReadInt(),
                         MaxQuality = s.ReadInt()
                     };
+
+                    int c = s.ReadByte();
+                    for (int j = 0; j < c; j++)
+                        info.Ingredients.Add(Items[s.ReadInt()]);
+
                     Recipes.Add(info);
 
                     if (i % 100 == 0)
@@ -133,6 +140,15 @@ namespace FFXIVCraftingSim
                             MaxQuality = recipeLevelTable.Quality * value.QualityFactor / 100
                         };
 
+                        try
+                        {
+                            info.Ingredients.AddRange(value.Ingredients.Select(x => Items[x.Item.Key]));
+                        }
+                        catch
+                        {
+                            Debugger.Break();
+                        }
+
                         Recipes.Add(info);
                     }
 
@@ -165,7 +181,9 @@ namespace FFXIVCraftingSim
                 s.WriteInt(value.Durability);
                 s.WriteInt(value.MaxProgress);
                 s.WriteInt(value.MaxQuality);
-
+                s.WriteByte((byte)value.Ingredients.Count);
+                for (int j = 0; j < value.Ingredients.Count; j++)
+                    s.WriteInt(value.Ingredients[j].Id);
                 if (i % 100 == 0)
                     SetStatus(null, i);
             }
@@ -544,7 +562,7 @@ namespace FFXIVCraftingSim
                 SetStatus("Reading RecipeRotations from RecipeRotations.db...", 0);
                 DataStream s = new DataStream(File.ReadAllBytes("RecipeRotations.db"));
                 ushort length = s.ReadUShort();
-                RecipeRotations = new Dictionary<AbstractRecipeInfo, List<RotationInfo>>(length);
+                RecipeRotations = new Dictionary<AbstractRecipeInfo, List<RecipeSolutionInfo>>(length);
                 SetStatus(null, 0, 0, length);
                 for (ushort i = 0; i < length; i++)
                 {
@@ -558,10 +576,10 @@ namespace FFXIVCraftingSim
                         MaxQuality = s.ReadInt()
                     };
                     var ll = s.ReadUShort();
-                    RecipeRotations[info] = new List<RotationInfo>(ll);
+                    RecipeRotations[info] = new List<RecipeSolutionInfo>(ll);
                     for (int j = 0; j < ll; j++)
                     {
-                        RotationInfo rotation = new RotationInfo();
+                        RecipeSolutionInfo rotation = new RecipeSolutionInfo();
                         rotation.MaxCraftsmanship = s.ReadInt();
                         rotation.MinCraftsmanship = s.ReadInt();
                         rotation.MinControl = s.ReadInt();
@@ -587,14 +605,14 @@ namespace FFXIVCraftingSim
 
                 SetStatus("Creating RecipeRotations from Recipes...", 0, 0, Recipes.Count);
 
-                RecipeRotations = new Dictionary<AbstractRecipeInfo, List<RotationInfo>>();
+                RecipeRotations = new Dictionary<AbstractRecipeInfo, List<RecipeSolutionInfo>>();
                 for (int i = 0; i < Recipes.Count; i++)
                 {
 
                     AbstractRecipeInfo abstractInfo = Recipes[i].GetAbstractData();
                     if (!RecipeRotations.ContainsKey(abstractInfo))
 
-                        RecipeRotations[abstractInfo] = new List<RotationInfo>();
+                        RecipeRotations[abstractInfo] = new List<RecipeSolutionInfo>();
 
                     if (i % 100 == 0)
                         SetStatus(null, i);
@@ -717,7 +735,7 @@ namespace FFXIVCraftingSim
             if (s.CurrentProgress < s.CurrentRecipe.MaxProgress || s.CurrentQuality < s.CurrentRecipe.MaxQuality)
                 return;
 
-            RotationInfo info = RotationInfo.FromSim(s);
+            RecipeSolutionInfo info = RecipeSolutionInfo.FromSim(s);
 
 
             if (!G.RecipeRotations[abstractData].Contains(info) && !G.RecipeRotations[abstractData].Any(x => x.IsBetterThan(info)))
@@ -735,7 +753,12 @@ namespace FFXIVCraftingSim
             MainWindow.UpdateRotationsCount();
         }
 
-        public static void RemoveRotation(AbstractRecipeInfo abstractRecipeInfo, RotationInfo rotationInfo)
+        public static RecipeSolutionInfo[] GetAllRotationsForRecipe(RecipeInfo recipe)
+        {
+            return G.RecipeRotations[recipe.GetAbstractData()].ToArray();
+        }
+
+        public static void RemoveRotation(AbstractRecipeInfo abstractRecipeInfo, RecipeSolutionInfo rotationInfo)
         {
             G.RecipeRotations[abstractRecipeInfo].Remove(rotationInfo);
             MainWindow.UpdateRotationsCount();

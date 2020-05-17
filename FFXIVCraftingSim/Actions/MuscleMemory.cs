@@ -9,7 +9,7 @@ namespace FFXIVCraftingSim.Actions
 {
     public class MuscleMemory : CraftingAction
     {
-        public override int Id => 12;
+        public override ushort Id => 12;
 
         public override string Name => "Muscle Memory";
         public override bool IsBuff => false;

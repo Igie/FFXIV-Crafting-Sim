@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Documents;
 
 namespace FFXIVCraftingSim.Solving.GeneticAlgorithm
 {
@@ -26,7 +27,7 @@ namespace FFXIVCraftingSim.Solving.GeneticAlgorithm
             Sim = sim.Clone();
             PossibleValues = possibleValues;
             Values = new ushort[valueCount];
-            Array.Copy(values, Values, values.Length);
+            values.CopyTo(Values, 0);
             Fitness = Evaluate();
         }
 
@@ -91,7 +92,7 @@ namespace FFXIVCraftingSim.Solving.GeneticAlgorithm
             int result = 7;
             for (int i = 0; i < UsableValues.Length; i++)
             {
-                result ^= Values[i];
+                result ^= UsableValues[i];
                 result *= 29;
             }
             return result;
@@ -116,12 +117,28 @@ namespace FFXIVCraftingSim.Solving.GeneticAlgorithm
             if (UsableValues.Length != other.UsableValues.Length)
                 return false;
 
+            if (Hash == other.Hash)
+                return true;
+
+            if (Sim.CurrentProgress == other.Sim.CurrentProgress &&
+                Sim.CurrentQuality == other.Sim.CurrentQuality &&
+                Sim.CurrentDurability == other.Sim.CurrentDurability &&
+                Sim.CurrentCP == other.Sim.CurrentCP && 
+                Sim.CraftingActionsLength == other.Sim.CraftingActionsLength &&
+                Sim.Score == other.Sim.Score)
+                return true;
 
             return Hash == other.Hash;
-
+            bool eq = true;
             for (int i = 0; i < UsableValues.Length; i++)
                 if (UsableValues[i] != other.UsableValues[i])
-                    return false;
+                {
+                    eq = false;
+                    break;
+                }
+
+            if (eq && Hash != other.Hash)
+                Debugger.Break();
             return true;
         }
 

@@ -9,7 +9,7 @@
         xmlns:Actions="clr-namespace:FFXIVCraftingSim.Actions" 
         x:Class="FFXIVCraftingSim.MainWindow"
         mc:Ignorable="d"
-        Title="Crafting Simulator" Height="800" Width="1024" Loaded="Window_Loaded" Closing="Window_Closing"
+        Title="Crafting Simulator" Height="899" Width="1154" Loaded="Window_Loaded" Closing="Window_Closing"
     >
     <Window.Resources>
         <Style x:Key="LabelStyle" TargetType="{x:Type Label}">
@@ -37,9 +37,10 @@
     <Grid>
         <Menu Height="23" VerticalAlignment="Top">
             <MenuItem Width="100" Header="Rotations...">
-                <MenuItem Header="Add to rotations pool" />
+                <MenuItem Header="Open Rotation Manager" Click="MenuItemOpenRotationManagerClicked" />
             </MenuItem>
             <MenuItem Header="Reload Database" Width="100" Height="23" Click="ReloadDatabaseClicked" />
+            
             <CheckBox x:Name="CheckboxTopmost" Content="Always on Top" IsChecked="{Binding Path=Topmost, RelativeSource={RelativeSource AncestorType={x:Type Window}}}" />
         </Menu>
         <GroupBox Header="Crafter Stats" HorizontalAlignment="Left" Height="201" Margin="0,23,0,0" VerticalAlignment="Top" FontFamily="Consolas" Width="266">
@@ -98,7 +99,7 @@
                 <Label x:Name="LabelStatus" Content="" FontFamily="Consolas" />
             </StatusBarItem>
         </StatusBar>
-        <GroupBox Header="Crafting" Margin="271,23,10,35">
+        <GroupBox Header="Crafting" Margin="271,23,10,35" FontFamily="Consolas">
             <Grid>
                 <Label x:Name="LabelName" Content="" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top" Width="340" FontFamily="Consolas"/>
                 <Separator Height="2" Margin="0,43,0,0" VerticalAlignment="Top"/>
@@ -106,12 +107,16 @@
                 <Label x:Name="LabelCP" Content="CP: 541/541" HorizontalAlignment="Left" Margin="10,70,0,0" VerticalAlignment="Top" FontFamily="Consolas"/>
                 <Label Content="Progress:" HorizontalAlignment="Left" Margin="147,48,0,0" VerticalAlignment="Top" FontFamily="Consolas"/>
                 <Label Content="Quality:" HorizontalAlignment="Left" Margin="153,72,0,0" VerticalAlignment="Top" FontFamily="Consolas"/>
-                <ProgressBar x:Name="ProgressBarProgress" HorizontalAlignment="Left" Height="22" Margin="216,48,0,0" VerticalAlignment="Top" Width="100"/>
-                <ProgressBar x:Name="ProgressBarQuality" HorizontalAlignment="Left" Height="22" Margin="216,72,0,0" VerticalAlignment="Top" Width="100"/>
-                <Label x:Name="LabelProgress" Content="10000/10000" Margin="321,48,0,0" VerticalAlignment="Top" FontFamily="Consolas" HorizontalAlignment="Left" Width="180"/>
-                <Label x:Name="LabelQuality" Content="10000/10000" Margin="321,72,0,0" VerticalAlignment="Top" FontFamily="Consolas" HorizontalAlignment="Left" Width="180"/>
+
+                <ProgressBar x:Name="ProgressBarProgress" HorizontalAlignment="Left" Height="22" Margin="216,48,0,0" VerticalAlignment="Top" Width="188">
+
+
+                </ProgressBar>
+                <ProgressBar x:Name="ProgressBarQuality" HorizontalAlignment="Left" Height="22" Margin="216,72,0,0" VerticalAlignment="Top" Width="188"/>
+                <Label x:Name="LabelProgress" Content="10000/10000" Margin="404,48,0,0" VerticalAlignment="Top" FontFamily="Consolas" HorizontalAlignment="Left" Width="178"/>
+                <Label x:Name="LabelQuality" Content="10000/10000" Margin="404,72,0,0" VerticalAlignment="Top" FontFamily="Consolas" HorizontalAlignment="Left" Width="178"/>
                 <Separator Height="2" Margin="0,99,0,0" VerticalAlignment="Top"/>
-                <ListView x:Name="ListViewActions" Height="83" Margin="0,123,0,0" VerticalAlignment="Top" FontFamily="Consolas" ScrollViewer.VerticalScrollBarVisibility="Disabled" HorizontalContentAlignment="Left" VerticalContentAlignment="Top" MouseLeftButtonUp="ListViewActions_MouseLeftButtonUp" >
+                <ListView x:Name="ListViewActions" Height="83" Margin="0,123,10,0" VerticalAlignment="Top" FontFamily="Consolas" ScrollViewer.VerticalScrollBarVisibility="Disabled" HorizontalContentAlignment="Left" VerticalContentAlignment="Top" MouseLeftButtonUp="ListViewActions_MouseLeftButtonUp" >
                     <ListView.ContextMenu>
                         <ContextMenu>
                             <MenuItem Header="Copy Macro" Click="CopyMacroClicked"/>
@@ -142,7 +147,7 @@
                         </DataTemplate>
                     </ListView.ItemTemplate>
                 </ListView>
-                <GroupBox Header="Available Actions" Margin="0,211,0,0">
+                <GroupBox Header="Available Actions" Margin="0,363,0,0">
                     <StackPanel Orientation="Vertical">
                         <HeaderedContentControl Header="Increases Progress:">
                             <ListView x:Name="ListViewAvailableIncreasesProgress" MouseLeftButtonUp="ListViewAvailable_MouseLeftButtonUp" ScrollViewer.HorizontalScrollBarVisibility="Disabled"  HorizontalContentAlignment="Left" VerticalContentAlignment="Top">
@@ -265,10 +270,25 @@
                         </DataTemplate>
                     </ListView.ItemTemplate>
                 </ListView>
-                <Label x:Name="LabelRotationsInDatabase" Content="Rotations in Database:" Margin="519,48,0,0" VerticalAlignment="Top" FontFamily="Consolas" HorizontalAlignment="Left" />
-                <Button x:Name="ButtonAddToDatabase" Content="Add to Database" HorizontalAlignment="Left" Margin="519,72,0,0" VerticalAlignment="Top" Width="114" Click="ButtonAddToDatabase_Click" FontFamily="Consolas"/>
-                <Button x:Name="ButtonChooseRotation" Content="Choose" HorizontalAlignment="Left" Margin="638,72,0,0" VerticalAlignment="Top" Width="75" FontFamily="Consolas" Click="ButtonChooseRotation_Click"/>
+                <Label x:Name="LabelRotationsInDatabase" Content="Rotations in Database:" Margin="582,48,0,0" VerticalAlignment="Top" FontFamily="Consolas" HorizontalAlignment="Left" Width="191" />
+                <Button x:Name="ButtonAddRotationToDatabase" Content="Add Rotation to Database" HorizontalAlignment="Left" Margin="587,72,0,0" VerticalAlignment="Top" Width="256" Click="ButtonAddRotationToDatabase_Click" FontFamily="Consolas"/>
+                <Button x:Name="ButtonChooseRotation" Content="Choose" HorizontalAlignment="Left" Margin="778,51,0,0" VerticalAlignment="Top" Width="65" FontFamily="Consolas" Click="ButtonChooseRotation_Click"/>
                 <Button x:Name="ButtonEditStepSettings" Content="Edit Step Settings" HorizontalAlignment="Left" Margin="0,101,0,0" VerticalAlignment="Top" Width="146" FontFamily="Consolas" Click="ButtonEditStepSettings_Click"/>
+                <GroupBox Header="Step Solver" Height="147" Margin="0,211,0,0" VerticalAlignment="Top" FontFamily="Consolas">
+                    <TreeView Name="TreeViewStepSolver" Margin="0,0,0,0">
+                        <TreeViewItem Header="Progress">
+                            <ListView x:Name="ListViewStepSolverProgress">
+
+                            </ListView>
+                        </TreeViewItem>
+
+                        <TreeViewItem Name="TreeViewItemStepSolverQuality" Header="Quality">
+                            <ListView x:Name="ListViewStepSolverQuality">
+
+                            </ListView>
+                        </TreeViewItem>
+                    </TreeView>
+                </GroupBox>
             </Grid>
 
         </GroupBox>
@@ -280,6 +300,8 @@
         <TextBox x:Name="TextBoxTaskCount" HorizontalAlignment="Left" Height="24" Margin="162,496,0,0" TextWrapping="Wrap" Text="12" VerticalContentAlignment="Center" VerticalAlignment="Top" Width="104"/>
         <Label Content="Chromosome Count:" HorizontalAlignment="Left" Margin="10,525,0,0" VerticalContentAlignment="Center" VerticalAlignment="Top" Width="147" FontFamily="Consolas"/>
         <TextBox x:Name="TextBoxChromosomeCount" HorizontalAlignment="Left" Height="24" Margin="162,525,0,0" TextWrapping="Wrap" Text="150" VerticalContentAlignment="Center" VerticalAlignment="Top" Width="104"/>
+        <Button x:Name="ButtonAddFromDatabase" Content="Add From Database" HorizontalAlignment="Left" Margin="138,554,0,0" VerticalAlignment="Top" Width="128" Click="ButtonAddFromDatabase_Click"/>
+        <Button x:Name="ButtonAddToDatabase" Content="Add To Database" HorizontalAlignment="Left" Margin="138,579,0,0" VerticalAlignment="Top" Width="128" Click="ButtonAddToDatabase_Click"/>
 
 
 

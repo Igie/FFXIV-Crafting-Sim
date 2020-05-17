@@ -8,7 +8,7 @@ namespace FFXIVCraftingSim.Actions
 {
     public class FocusedSynthesis : CraftingAction
     {
-        public override int Id => 21;
+        public override ushort Id => 21;
 
         public override string Name => "Focused Synthesis";
         public override bool IsBuff => false;

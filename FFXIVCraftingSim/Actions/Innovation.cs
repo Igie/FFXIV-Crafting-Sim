@@ -9,7 +9,7 @@ namespace FFXIVCraftingSim.Actions
 {
     public class Innovation : CraftingAction
     {
-        public override int Id => 9;
+        public override ushort Id => 9;
 
         public override string Name => "Innovation";
         public override bool IsBuff => true;

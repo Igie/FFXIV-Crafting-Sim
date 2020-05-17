@@ -8,7 +8,7 @@ namespace FFXIVCraftingSim.Actions
 {
     public class Groundwork : CraftingAction
     {
-        public override int Id => 18;
+        public override ushort Id => 18;
 
         public override string Name => "Groundwork";
         public override bool IsBuff => false;

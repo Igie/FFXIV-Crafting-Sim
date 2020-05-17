@@ -29,37 +29,53 @@ namespace FFXIVCraftingSim.GUI.Windows
 
         private void MouseDoubleClickRecipe(object sender, MouseButtonEventArgs e)
         {
-            ListView parent = (sender as ListView);
-            if (parent.SelectedItem != null)
+
+
+            DataGrid parent = (sender as DataGrid);
+            if (parent != null && parent.SelectedValue != null)
             {
                 DialogResult = true;
-                SelectedRecipe = (parent.SelectedItem as RecipeInfo);
+                SelectedRecipe = (parent.SelectedValue as RecipeInfo);
                 Close();
             }
         }
 
         private void SearchTextChanged(object sender, TextChangedEventArgs e)
         {
-            CollectionViewSource.GetDefaultView(ListViewRecipes.ItemsSource).Refresh();
+            CollectionViewSource.GetDefaultView(DataGridRecipes.ItemsSource).Refresh();
         }
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
-            ListViewRecipes.ItemsSource = G.Recipes;
-            CollectionViewSource.GetDefaultView(ListViewRecipes.ItemsSource).Filter = UserFilter;
+           
+            DataGridRecipes.ItemsSource = G.Recipes;
+            CollectionViewSource.GetDefaultView(DataGridRecipes.ItemsSource).Filter = UserFilter;
         }
 
         private bool UserFilter(object item)
         {
             RecipeInfo info = (item as RecipeInfo);
 
-            string[] args = TextBoxSearchString.Text.ToLower().Split(' ');
-            if (String.IsNullOrEmpty(TextBoxSearchString.Text))
+            string[] args = TextBoxSearchStringName.Text.ToLower().Split(' ');
+
+            bool e1 = String.IsNullOrEmpty(TextBoxSearchStringName.Text);
+            bool e2 = String.IsNullOrEmpty(TextBoxSearchIngredient.Text);
+
+            if (e1 && e2)
                 return true;
-            string s = info.SearchString.ToLower();
-           foreach(var arg in args)
+            if (!e1)
             {
-                if (s.Contains(arg))
+                string s = info.SearchString.ToLower();
+                foreach (var arg in args)
+                {
+                    if (s.Contains(arg))
+                        return true;
+                }
+            }
+            if (!e2)
+            {
+                string ingredient = TextBoxSearchIngredient.Text.ToLower();
+                if (info.Ingredients.Any(x => x.Name.ToLower() == ingredient))
                     return true;
             }
 

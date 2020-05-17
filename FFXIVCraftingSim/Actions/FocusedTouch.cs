@@ -8,7 +8,7 @@ namespace FFXIVCraftingSim.Actions
 {
     public class FocusedTouch : CraftingAction
     {
-        public override int Id => 22;
+        public override ushort Id => 22;
 
         public override string Name => "Focused Touch";
         public override bool IsBuff => false;

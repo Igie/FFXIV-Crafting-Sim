@@ -141,8 +141,14 @@
     <Compile Include="CraftingSim.cs" />
     <Compile Include="GUI\CraftingActionContainer.cs" />
     <Compile Include="GUI\CraftingBuffContainer.cs" />
+    <Compile Include="GUI\CustomControls\ExtendedProgressBar.xaml.cs">
+      <DependentUpon>ExtendedProgressBar.xaml</DependentUpon>
+    </Compile>
     <Compile Include="GUI\Windows\FoodSelectionWindow.xaml.cs">
       <DependentUpon>FoodSelectionWindow.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="GUI\Windows\PartialRotationWindow.xaml.cs">
+      <DependentUpon>PartialRotationWindow.xaml</DependentUpon>
     </Compile>
     <Compile Include="GUI\Windows\PopulationsWindow.xaml.cs">
       <DependentUpon>PopulationsWindow.xaml</DependentUpon>
@@ -162,7 +168,8 @@
     <Compile Include="Solving\GeneticAlgorithm\GeneticUtils.cs" />
     <Compile Include="Solving\GeneticAlgorithm\Population.cs" />
     <Compile Include="Solving\PossibleCraftingAction.cs" />
-    <Compile Include="Solving\Solver.cs" />
+    <Compile Include="Solving\GASolver.cs" />
+    <Compile Include="Solving\StepSolver.cs" />
     <Compile Include="Stream\DataStream.cs" />
     <Compile Include="Types\CraftingSimStepSettings.cs" />
     <Compile Include="Types\GameData\ActionInfo.cs" />
@@ -170,8 +177,17 @@
     <Compile Include="Types\GameData\LevelDifferenceInfo.cs" />
     <Compile Include="Types\GameData\RecipeInfo.cs" />
     <Compile Include="Types\ExtendedArray.cs" />
-    <Compile Include="Types\RotationInfo.cs" />
+    <Compile Include="Types\RecipeSolutionInfo.cs" />
+    <Compile Include="Solving\RotationInfo.cs" />
+    <Page Include="GUI\CustomControls\ExtendedProgressBar.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="GUI\Windows\FoodSelectionWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="GUI\Windows\PartialRotationWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

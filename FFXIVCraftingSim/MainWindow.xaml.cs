@@ -34,7 +34,7 @@ namespace FFXIVCraftingSim
         private ItemInfo SelectedFood { get; set; }
         private ItemInfo SelectedTea { get; set; }
 
-        private Solver Solver { get; set; }
+        private GASolver Solver { get; set; }
 
         public MainWindow()
         {
@@ -133,7 +133,7 @@ namespace FFXIVCraftingSim
                 if (Solver == null)
                 {
                     var actions = CraftingAction.CraftingActions.Select(x => (ushort)x.Key).ToList();
-                    Solver = new Solver(Sim, actions.ToArray());
+                    Solver = new GASolver(Sim, actions.ToArray());
                     Solver.GenerationRan += Solver_GenerationRan;
                 }
             }
@@ -404,6 +404,8 @@ namespace FFXIVCraftingSim
             });
 
             UpdateRotationsCount();
+
+           
         }
         public void PlayerStatsFromTextToSim()
         {
@@ -485,6 +487,13 @@ namespace FFXIVCraftingSim
         private void ButtonFindBest_Click(object sender, RoutedEventArgs e)
         {
             if (Solver == null) return;
+
+            //StepSolver solver = new StepSolver();
+            //solver.Solve(Sim);
+            //Sim.RemoveActions();
+            
+            //Sim.AddActions(solver.Sim.GetCraftingActions());
+            //return;
             Solver.Continue = !Solver.Continue;
             ButtonFindBest.Content = Solver.Continue ? "Stop" : "Find Best";
 
@@ -549,7 +558,7 @@ namespace FFXIVCraftingSim
 
         }
 
-        private void ButtonAddToDatabase_Click(object sender, RoutedEventArgs e)
+        private void ButtonAddRotationToDatabase_Click(object sender, RoutedEventArgs e)
         {
             if (Sim == null || Sim.CurrentRecipe == null)
                 return;
@@ -589,6 +598,37 @@ namespace FFXIVCraftingSim
         private void ClearAllClicked(object sender, RoutedEventArgs e)
         {
             Sim.RemoveActions();
+        }
+
+        private void MenuItemOpenRotationManagerClicked(object sender, RoutedEventArgs e)
+        {
+
+        }
+
+        private void ButtonAddFromDatabase_Click(object sender, RoutedEventArgs e)
+        {
+            if (Sim == null || Sim.CurrentRecipe == null || Solver == null)
+                return;
+            var rotations = G.GetAllRotationsForRecipe(Sim.CurrentRecipe);
+            ushort[][] actions = rotations.Select(x => x.Rotation.Array.ToArray()).ToArray();
+            for (int i = 0; i < Solver.Populations.Length; i++)
+            {
+                Solver.Populations[i].AddChromosomes(actions, true);
+            }
+        }
+
+        private void ButtonAddToDatabase_Click(object sender, RoutedEventArgs e)
+        {
+            if (Sim == null || Sim.CurrentRecipe == null || Solver == null)
+                return;
+
+            for (int i = 0; i < Solver.Populations.Length; i++)
+            {
+                for (int j = 0; j < Solver.Populations[i].Chromosomes.Length; j++)
+                {
+                    G.AddRotationFromSim(Solver.Populations[i].Chromosomes[j].Sim);
+                }
+            }
         }
     }
 }

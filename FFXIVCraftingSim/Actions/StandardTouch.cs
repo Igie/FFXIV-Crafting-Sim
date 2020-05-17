@@ -8,7 +8,7 @@ namespace FFXIVCraftingSim.Actions
 {
     public class StandardTouch : CraftingAction
     {
-        public override int Id => 7;
+        public override ushort Id => 7;
 
         public override string Name => "Standard Touch";
         public override bool IsBuff => false;

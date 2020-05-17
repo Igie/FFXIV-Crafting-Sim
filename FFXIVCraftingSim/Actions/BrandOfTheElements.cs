@@ -8,7 +8,7 @@ namespace FFXIVCraftingSim.Actions
 {
     public class BrandOfTheElements : CraftingAction
     {
-        public override int Id => 24;
+        public override ushort Id => 24;
 
         public override string Name => "Brand of the Elements";
         public override bool IsBuff => false;

@@ -32,6 +32,17 @@ namespace FFXIVCraftingSim.Types
             return true;
         }
 
+        public override int GetHashCode()
+        {
+            int result = 13;
+            for(int i = 0; i < Array.Length; i++)
+            {
+                result *= 29;
+                result ^= Array[i].GetHashCode();
+            }
+            return result;
+        }
+
         public static implicit operator ExtendedArray<T>(T[] array)
         {
             return new ExtendedArray<T>(array);

@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace FFXIVCraftingSim.Types
 {
-    public class RotationInfo : IEquatable<RotationInfo>
+    public class RecipeSolutionInfo : IEquatable<RecipeSolutionInfo>
     {
         public int MaxCraftsmanship { get; set; }
         public int MinCraftsmanship { get; set; }
@@ -34,10 +34,10 @@ namespace FFXIVCraftingSim.Types
 
         public override bool Equals(object obj)
         {
-            return base.Equals(obj as RotationInfo);
+            return base.Equals(obj as RecipeSolutionInfo);
         }
 
-        public bool IsBetterThanOrEqual(RotationInfo other)
+        public bool IsBetterThanOrEqual(RecipeSolutionInfo other)
         {
             return MaxCraftsmanship >= other.MaxCraftsmanship &&
                 MinCraftsmanship <= other.MinCraftsmanship &&
@@ -47,7 +47,7 @@ namespace FFXIVCraftingSim.Types
                 RotationTime <= other.RotationTime;
         }
 
-        public bool IsBetterThan(RotationInfo other)
+        public bool IsBetterThan(RecipeSolutionInfo other)
         {
             return IsBetterThanOrEqual(other) && !Equals(other);
         }
@@ -63,7 +63,7 @@ namespace FFXIVCraftingSim.Types
             return hash;
         }
 
-        public bool Equals(RotationInfo other)
+        public bool Equals(RecipeSolutionInfo other)
         {
             if (other is null)
                 return false;
@@ -75,13 +75,13 @@ namespace FFXIVCraftingSim.Types
                 Rotation.Equals(other.Rotation);
         }
 
-        public static RotationInfo FromSim(CraftingSim sim)
+        public static RecipeSolutionInfo FromSim(CraftingSim sim)
         {
             if (sim == null ||
                 sim.CurrentProgress < sim.CurrentRecipe.MaxProgress ||
                 sim.CurrentQuality < sim.CurrentRecipe.MaxQuality)
                 return null;
-            RotationInfo result = new RotationInfo();
+            RecipeSolutionInfo result = new RecipeSolutionInfo();
             CraftingSim s = sim.Clone();
             var actions = sim.GetCraftingActions();
             s.AddActions(actions);

@@ -34,7 +34,7 @@ namespace FFXIVCraftingSim.GUI.Windows
         }
 
 
-        public void AddSolver(Solver solver)
+        public void AddSolver(GASolver solver)
         {
             DataContext = solver;
             Populations = new ObservableCollection<PopulationContainer>(solver.Populations.Select(x => new PopulationContainer(x)));

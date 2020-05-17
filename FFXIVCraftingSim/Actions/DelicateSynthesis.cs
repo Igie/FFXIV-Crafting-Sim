@@ -8,7 +8,7 @@ namespace FFXIVCraftingSim.Actions
 {
     public class DelicateSynthesis : CraftingAction
     {
-        public override int Id => 19;
+        public override ushort Id => 19;
 
         public override string Name => "Delicate Synthesis";
         public override bool IsBuff => false;

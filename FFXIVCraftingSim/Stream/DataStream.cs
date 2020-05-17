@@ -1,6 +1,7 @@
 ﻿using FFXIVCraftingSim.Converters;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -28,6 +29,8 @@ namespace FFXIVCraftingSim.Stream
 
         public byte[] ReadBytes(int count)
         {
+            if (Position + count > Length)
+                Debugger.Break();
             byte[] result = new byte[count];
             Read(result, 0, count);
             return result;

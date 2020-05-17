@@ -9,7 +9,7 @@ namespace FFXIVCraftingSim.Actions
 {
     public class Reflect : CraftingAction
     {
-        public override int Id => 16;
+        public override ushort Id => 16;
 
         public override string Name => "Reflect";
         public override bool IsBuff => false;

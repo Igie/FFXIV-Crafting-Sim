@@ -10,7 +10,7 @@ namespace FFXIVCraftingSim.Actions
     public class InnerQuiet : CraftingAction
     {
 
-        public override int Id => 4;
+        public override ushort Id => 4;
 
         public override string Name => "Inner Quiet";
         public override bool IsBuff => true;

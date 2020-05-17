@@ -8,7 +8,7 @@ namespace FFXIVCraftingSim.Actions
 {
     public class PreparatoryTouch : CraftingAction
     {
-        public override int Id => 17;
+        public override ushort Id => 17;
 
         public override string Name => "Preparatory Touch";
         public override bool IsBuff => false;

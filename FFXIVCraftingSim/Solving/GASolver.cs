@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace FFXIVCraftingSim.Solving
 {
-    public class Solver
+    public class GASolver
     {
         public CraftingSim Sim { get; private set; }
         public ushort[] AvailableActions { get; private set; }
@@ -32,7 +32,7 @@ namespace FFXIVCraftingSim.Solving
 
         public bool CopyBestRotationToPopulations { get; set; }
 
-        public Solver(CraftingSim sim, ushort[] availableActions)
+        public GASolver(CraftingSim sim, ushort[] availableActions)
         {
             Sim = sim;
             AvailableActions = availableActions;
@@ -40,10 +40,17 @@ namespace FFXIVCraftingSim.Solving
 
             CopyBestRotationToPopulations = false;
             LeaveStartingActions = false;
+
+            if (Populations == null)
+            {
+                Populations = new Population[8];
+                for (int i = 0; i < 8; i++)
+                    Populations[i] = new Population(i, Sim.Clone(), 550, CraftingSim.MaxActions, AvailableActions);
+            }
         }
 
 
-        public void Start(int taskCount = 8, int chromosomeCount = 150, bool leaveStartingActions = false)
+        public void Start(int taskCount = 8, int chromosomeCount = 550, bool leaveStartingActions = false)
         {
             Continue = true;
             NeedsUpdate = false;
@@ -83,7 +90,7 @@ namespace FFXIVCraftingSim.Solving
             BestChromosome = new Chromosome(Sim.Clone(), AvailableActions,CraftingSim.MaxActions, Sim.GetCraftingActions().Select(x => (ushort)x.Id).ToArray());
 
             for (int i = 0; i < Populations.Length; i++)
-                Populations[i].PendingBest = BestChromosome;
+                Populations[i].PendingBest = BestChromosome.Clone();
 
             Task.Run(() =>
             {
@@ -129,7 +136,7 @@ namespace FFXIVCraftingSim.Solving
                    
                     if (CopyBestRotationToPopulations)
                     for (int i = 0; i < Populations.Length; i++)
-                        Populations[i].PendingBest = BestChromosome;
+                        Populations[i].PendingBest = BestChromosome.Clone();
 
                     G.AddRotationFromSim(Sim);
                 }

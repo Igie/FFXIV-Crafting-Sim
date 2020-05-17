@@ -34,34 +34,62 @@ namespace FFXIVCraftingSim.Actions
     {
         static CraftingAction()
         {
+
             CraftingActions = new Dictionary<int, CraftingAction>();
-            CraftingActions.Add(1, new BasicSynthesis());
-            CraftingActions.Add(2, new BasicTouch());
-            CraftingActions.Add(3, new MastersMend());
-            CraftingActions.Add(4, new InnerQuiet());
-            CraftingActions.Add(5, new WasteNot());
-            CraftingActions.Add(6, new Veneration());
-            CraftingActions.Add(7, new StandardTouch());
-            CraftingActions.Add(8, new GreatStrides());
-            CraftingActions.Add(9, new Innovation());
-            CraftingActions.Add(10, new WasteNotII());
-            CraftingActions.Add(11, new ByregotsBlessing());
-            CraftingActions.Add(12, new MuscleMemory());
-            CraftingActions.Add(13, new CarefulSynthesis());
-            CraftingActions.Add(14, new Manipulation());
-            CraftingActions.Add(15, new PrudentTouch());
-            CraftingActions.Add(16, new Reflect());
-            CraftingActions.Add(17, new PreparatoryTouch());
-            CraftingActions.Add(18, new Groundwork());
-            CraftingActions.Add(19, new DelicateSynthesis());
-            CraftingActions.Add(20, new Observe());
-            CraftingActions.Add(21, new FocusedSynthesis());
-            CraftingActions.Add(22, new FocusedTouch());
-            CraftingActions.Add(23, new NameOfTheElements());
-            CraftingActions.Add(24, new BrandOfTheElements());
+            CraftingActions.Add(1, BasicSynthesis);
+            CraftingActions.Add(2, BasicTouch);
+            CraftingActions.Add(3, MastersMend);
+            CraftingActions.Add(4, InnerQuiet);
+            CraftingActions.Add(5, WasteNot);
+            CraftingActions.Add(6, Veneration);
+            CraftingActions.Add(7, StandardTouch);
+            CraftingActions.Add(8, GreatStrides);
+            CraftingActions.Add(9, Innovation);
+            CraftingActions.Add(10, WasteNotII);
+            CraftingActions.Add(11, ByregotsBlessing);
+            CraftingActions.Add(12, MuscleMemory);
+            CraftingActions.Add(13, CarefulSynthesis);
+            CraftingActions.Add(14, Manipulation);
+            CraftingActions.Add(15, PrudentTouch);
+            CraftingActions.Add(16, Reflect);
+            CraftingActions.Add(17, PreparatoryTouch);
+            CraftingActions.Add(18, Groundwork);
+            CraftingActions.Add(19, DelicateSynthesis);
+            CraftingActions.Add(20, Observe);
+            CraftingActions.Add(21, FocusedSynthesis);
+            CraftingActions.Add(22, FocusedTouch);
+            CraftingActions.Add(23, NameOfTheElements);
+            CraftingActions.Add(24, BrandOfTheElements);
+
+
         }
 
         public static Dictionary<int, CraftingAction> CraftingActions { get; private set; }
+
+        public static BasicSynthesis BasicSynthesis { get; set; } = new BasicSynthesis();
+        public static BasicTouch BasicTouch { get; private set; } = new BasicTouch();
+        public static MastersMend MastersMend { get; private set; } = new MastersMend();
+        public static InnerQuiet InnerQuiet { get; private set; } = new InnerQuiet();
+        public static WasteNot WasteNot { get; private set; } = new WasteNot();
+        public static Veneration Veneration { get; private set; } = new Veneration();
+        public static StandardTouch StandardTouch { get; private set; } = new StandardTouch();
+        public static GreatStrides GreatStrides { get; private set; } = new GreatStrides();
+        public static Innovation Innovation { get; private set; } = new Innovation();
+        public static WasteNotII WasteNotII { get; private set; } = new WasteNotII();
+        public static ByregotsBlessing ByregotsBlessing { get; private set; } = new ByregotsBlessing();
+        public static MuscleMemory MuscleMemory { get; private set; } = new MuscleMemory();
+        public static CarefulSynthesis CarefulSynthesis { get; private set; } = new CarefulSynthesis();
+        public static Manipulation Manipulation { get; private set; } = new Manipulation();
+        public static PrudentTouch PrudentTouch { get; private set; } = new PrudentTouch();
+        public static Reflect Reflect { get; private set; } = new Reflect();
+        public static PreparatoryTouch PreparatoryTouch { get; private set; } = new PreparatoryTouch();
+        public static Groundwork Groundwork { get; private set; } = new Groundwork();
+        public static DelicateSynthesis DelicateSynthesis { get; private set; } = new DelicateSynthesis();
+        public static Observe Observe { get; private set; } = new Observe();
+        public static FocusedSynthesis FocusedSynthesis { get; private set; } = new FocusedSynthesis();
+        public static FocusedTouch FocusedTouch { get; private set; } = new FocusedTouch();
+        public static NameOfTheElements NameOfTheElements { get; private set; } = new NameOfTheElements();
+        public static BrandOfTheElements BrandOfTheElements { get; private set; } = new BrandOfTheElements();
 
         public CraftingActionType CraftingActionType
         {
@@ -69,7 +97,7 @@ namespace FFXIVCraftingSim.Actions
             {
                 CraftingActionType flags = CraftingActionType.None;
                 if (IncreasesProgress)
-                    flags |= CraftingActionType.IncreasesProgress; 
+                    flags |= CraftingActionType.IncreasesProgress;
                 if (IncreasesQuality)
                     flags |= CraftingActionType.IncreasesQuality;
                 if (IsBuff)
@@ -78,7 +106,7 @@ namespace FFXIVCraftingSim.Actions
             }
         }
 
-        public virtual int Id
+        public virtual ushort Id
         {
             get { throw new NotImplementedException(); }
         }
@@ -105,7 +133,7 @@ namespace FFXIVCraftingSim.Actions
         {
             get { throw new NotImplementedException(); }
         }
-       
+
         protected virtual int DurabilityCost
         {
             get { throw new NotImplementedException(); }
@@ -124,24 +152,6 @@ namespace FFXIVCraftingSim.Actions
         public virtual bool AddsBuff
         {
             get { throw new NotImplementedException(); }
-        }
-
-        public CraftingActionResult Check(CraftingSim sim, int index)
-        {
-
-            if (AsFirstActionOnly && index > 0)
-                return CraftingActionResult.FirstActionOnly;
-            if (sim.CurrentProgress >= sim.CurrentRecipe.MaxProgress)
-                return CraftingActionResult.CraftCompleted;
-
-
-
-            if (GetCPCost(sim) > sim.CurrentCP)
-                return CraftingActionResult.NotEnoughCP;
-            if (sim.CurrentDurability <= 0)
-                return CraftingActionResult.NotEnoughDurability;
-
-            return CheckInner(sim);
         }
 
         public virtual CraftingActionResult CheckInner(CraftingSim sim)
@@ -179,7 +189,7 @@ namespace FFXIVCraftingSim.Actions
         public virtual void IncreaseProgress(CraftingSim sim)
         {
             if (IncreasesProgress)
-            {  
+            {
                 sim.CurrentProgress += sim.GetProgressIncrease(GetEfficiency(sim));
                 if (sim.MuscleMemoryBuff != null)
                     sim.MuscleMemoryBuff.NeedsRemove = true;

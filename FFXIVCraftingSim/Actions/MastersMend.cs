@@ -9,7 +9,7 @@ namespace FFXIVCraftingSim.Actions
     public class MastersMend : CraftingAction
     {
 
-        public override int Id => 3;
+        public override ushort Id => 3;
 
         public override string Name => "Master's Mend";
         public override bool IsBuff => false;
