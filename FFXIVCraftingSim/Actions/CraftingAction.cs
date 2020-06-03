@@ -2,6 +2,7 @@
 using FFXIVCraftingSim.Types;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -61,6 +62,11 @@ namespace FFXIVCraftingSim.Actions
             CraftingActions.Add(23, NameOfTheElements);
             CraftingActions.Add(24, BrandOfTheElements);
 
+            for (int i = 1; i <= CraftingActions.Count; i++)
+            {
+                if (CraftingActions[i].Id != i)
+                    Debugger.Break();
+            }
 
         }
 
@@ -114,6 +120,12 @@ namespace FFXIVCraftingSim.Actions
         public virtual string Name
         {
             get { throw new NotImplementedException(); }
+        }
+
+        public virtual int Level
+        {
+            get { throw new NotImplementedException(); }
+
         }
 
         public virtual bool IsBuff

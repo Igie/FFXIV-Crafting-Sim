@@ -13,6 +13,7 @@ namespace FFXIVCraftingSim.Actions
         public override ushort Id => 4;
 
         public override string Name => "Inner Quiet";
+        public override int Level => 11;
         public override bool IsBuff => true;
         public override bool IncreasesProgress => false;
         public override bool IncreasesQuality => false;

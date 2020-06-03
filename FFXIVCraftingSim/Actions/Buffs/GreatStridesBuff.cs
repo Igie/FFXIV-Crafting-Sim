@@ -22,6 +22,11 @@ namespace FFXIVCraftingSim.Actions.Buffs
             sim.GreatStridesBuff = null;
             base.Remove(sim);
         }
+
+        public override CraftingBuff Clone()
+        {
+            return new GreatStridesBuff { Stack = Stack, NeedsRemove = NeedsRemove };
+        }
     }
 
     

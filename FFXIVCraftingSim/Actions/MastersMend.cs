@@ -12,6 +12,7 @@ namespace FFXIVCraftingSim.Actions
         public override ushort Id => 3;
 
         public override string Name => "Master's Mend";
+        public override int Level => 7;
         public override bool IsBuff => false;
         public override bool IncreasesProgress => false;
         public override bool IncreasesQuality => false;

@@ -22,7 +22,10 @@ namespace FFXIVCraftingSim.Actions.Buffs
             sim.VenerationBuff = null;
             base.Remove(sim);
         }
-    }
 
-    
+        public override CraftingBuff Clone()
+        {
+            return new VenerationBuff { Stack = Stack, NeedsRemove = NeedsRemove };
+        }
+    }
 }

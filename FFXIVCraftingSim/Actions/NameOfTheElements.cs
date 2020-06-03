@@ -12,6 +12,7 @@ namespace FFXIVCraftingSim.Actions
         public override ushort Id => 23;
 
         public override string Name => "Name of the Elements";
+        public override int Level => 37;
         public override bool IsBuff => true;
         public override bool IncreasesProgress => false;
         public override bool IncreasesQuality => false;

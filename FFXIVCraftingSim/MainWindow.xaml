@@ -9,7 +9,7 @@
         xmlns:Actions="clr-namespace:FFXIVCraftingSim.Actions" 
         x:Class="FFXIVCraftingSim.MainWindow"
         mc:Ignorable="d"
-        Title="Crafting Simulator" Height="899" Width="1154" Loaded="Window_Loaded" Closing="Window_Closing"
+        Title="Crafting Simulator" Height="900" Width="1160" Loaded="Window_Loaded" Closing="Window_Closing"
     >
     <Window.Resources>
         <Style x:Key="LabelStyle" TargetType="{x:Type Label}">
@@ -32,7 +32,16 @@
             <Setter Property="HorizontalContentAlignment" Value="Left" />
         </Style>
 
-        <conv:CraftingActionTypeToNameConverter x:Key="CraftingActionTypeToNameConverter"  x:Name="CraftingActionTypeToNameConverter" />
+        <Style x:Key="ListViewItemAvailableAction" TargetType="{x:Type ListViewItem}">
+            <Setter Property="HorizontalContentAlignment" Value="Center" />
+            <Setter Property="VerticalContentAlignment" Value="Center" />
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Margin" Value="0"/>
+            <Setter Property="Padding" Value="0"/>
+        </Style>
+
+        <conv:CraftingActionTypeToNameConverter x:Key="CraftingActionTypeToNameConverter" x:Name="CraftingActionTypeToNameConverter" />
+        <conv:StringToIntConverter x:Key="StringToIntConverter" x:Name="StringToIntConverter" />
     </Window.Resources>
     <Grid>
         <Menu Height="23" VerticalAlignment="Top">
@@ -40,8 +49,8 @@
                 <MenuItem Header="Open Rotation Manager" Click="MenuItemOpenRotationManagerClicked" />
             </MenuItem>
             <MenuItem Header="Reload Database" Width="100" Height="23" Click="ReloadDatabaseClicked" />
-            
-            <CheckBox x:Name="CheckboxTopmost" Content="Always on Top" IsChecked="{Binding Path=Topmost, RelativeSource={RelativeSource AncestorType={x:Type Window}}}" />
+
+            <CheckBox x:Name="CheckboxTopmost" Content="Always on Top" IsChecked="{Binding Path=Topmost, RelativeSource={RelativeSource AncestorType={x:Type Window}}, Mode=TwoWay}" />
         </Menu>
         <GroupBox Header="Crafter Stats" HorizontalAlignment="Left" Height="201" Margin="0,23,0,0" VerticalAlignment="Top" FontFamily="Consolas" Width="266">
             <Grid>
@@ -50,16 +59,34 @@
                     <ColumnDefinition Width="55*"/>
                 </Grid.ColumnDefinitions>
                 <Label Content="Level:"  Margin="0,10,0,0"  Style="{StaticResource LabelStyle}"/>
-                <TextBox x:Name="TextBoxCrafterLevel" Margin="0,10,0,0"  Style="{StaticResource TextBoxStyle}" TextChanged="TextChangedAllowNumericOnly"/>
+                <TextBox x:Name="TextBoxCrafterLevel" Margin="0,10,0,0"  Style="{StaticResource TextBoxStyle}" Text="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type local:MainWindow}}, Path=Sim.Level}" />
                 <Label Content="Craftsmanship:"  Margin="0,35,0,0" Style="{StaticResource LabelStyle}" />
-                <TextBox x:Name="TextBoxCrafterCraftsmanship" Margin="0,35,52,0" Style="{StaticResource TextBoxStyle}" TextChanged="TextChangedAllowNumericOnly"/>
-                <TextBox x:Name="TextBoxCrafterCraftsmanshipBuff" Text="+0" Margin="60,35,0,0" Style="{StaticResource TextBoxStyle}" IsReadOnly="True" />
+                <TextBox x:Name="TextBoxCrafterCraftsmanship" Margin="0,35,52,0" Style="{StaticResource TextBoxStyle}" Text="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type local:MainWindow}}, Path=Sim.BaseCraftsmanship}" />
+                <TextBox x:Name="TextBoxCrafterCraftsmanshipBuff"  Margin="60,35,0,0" Style="{StaticResource TextBoxStyle}" IsReadOnly="True">
+                    <TextBox.Text>
+                        <MultiBinding StringFormat="+{0}">
+                            <Binding RelativeSource= "{RelativeSource FindAncestor, AncestorType={x:Type local:MainWindow}}" Path="Sim.CraftsmanshipBuff" Mode="TwoWay"/>
+                        </MultiBinding>
+                    </TextBox.Text>
+                </TextBox>
                 <Label Content="Control:" Margin="0,60,0,0" Style="{StaticResource LabelStyle}" />
-                <TextBox x:Name="TextBoxCrafterControl" Height="25" Margin="0,60,52,0" Style="{StaticResource TextBoxStyle}" TextChanged="TextChangedAllowNumericOnly"/>
-                <TextBox x:Name="TextBoxCrafterControlBuff" Text="+0" Height="25" Margin="60,60,0,0" Style="{StaticResource TextBoxStyle}" IsReadOnly="True"/>
+                <TextBox x:Name="TextBoxCrafterControl" Height="25" Margin="0,60,52,0" Style="{StaticResource TextBoxStyle}" Text="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type local:MainWindow}}, Path=Sim.BaseControl}"/>
+                <TextBox x:Name="TextBoxCrafterControlBuff" Height="25" Margin="60,60,0,0" Style="{StaticResource TextBoxStyle}" IsReadOnly="True">
+                    <TextBox.Text>
+                        <MultiBinding StringFormat="+{0}">
+                            <Binding RelativeSource= "{RelativeSource FindAncestor, AncestorType={x:Type local:MainWindow}}" Path="Sim.ControlBuff" Mode="TwoWay"/>
+                        </MultiBinding>
+                    </TextBox.Text>
+                </TextBox>
                 <Label Content="Max CP:" Margin="0,85,0,0" Style="{StaticResource LabelStyle}" />
-                <TextBox x:Name="TextBoxCrafterMaxCP" Height="25" Margin="0,85,52,0" Style="{StaticResource TextBoxStyle}" TextChanged="TextChangedAllowNumericOnly"/>
-                <TextBox x:Name="TextBoxCrafterMaxCPBuff" Text="+0" Height="25" Margin="60,85,0,0" Style="{StaticResource TextBoxStyle}" IsReadOnly="True"/>
+                <TextBox x:Name="TextBoxCrafterMaxCP" Height="25" Margin="0,85,52,0" Style="{StaticResource TextBoxStyle}" Text="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type local:MainWindow}}, Path=Sim.BaseMaxCP}"/>
+                <TextBox x:Name="TextBoxCrafterMaxCPBuff" Height="25" Margin="60,85,0,0" Style="{StaticResource TextBoxStyle}" IsReadOnly="True">
+                    <TextBox.Text>
+                        <MultiBinding StringFormat="+{0}">
+                            <Binding RelativeSource= "{RelativeSource FindAncestor, AncestorType={x:Type local:MainWindow}}" Path="Sim.MaxCPBuff" Mode="TwoWay"/>
+                        </MultiBinding>
+                    </TextBox.Text>
+                </TextBox>
                 <Label Content="Food:" Margin="0,110,0,0" Style="{StaticResource LabelStyle}" />
                 <Button x:Name="ButtonFood" Height="25" Margin="33,110,0,45" Grid.ColumnSpan="2" Content="None" Click="ButtonFood_Click" />
                 <Label Content="Tea:" Margin="0,135,0,0" Style="{StaticResource LabelStyle}" />
@@ -101,22 +128,66 @@
         </StatusBar>
         <GroupBox Header="Crafting" Margin="271,23,10,35" FontFamily="Consolas">
             <Grid>
-                <Label x:Name="LabelName" Content="" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top" Width="340" FontFamily="Consolas"/>
+                <Label x:Name="LabelName" Content="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type local:MainWindow}}, Path=Sim.CurrentRecipe.Name, Mode=TwoWay}" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top" Width="340" Height="25" FontFamily="Consolas"/>
                 <Separator Height="2" Margin="0,43,0,0" VerticalAlignment="Top"/>
-                <Label x:Name="LabelDurability" Content="Durability: 40/40" HorizontalAlignment="Left" Margin="10,46,0,0" VerticalAlignment="Top" FontFamily="Consolas"/>
-                <Label x:Name="LabelCP" Content="CP: 541/541" HorizontalAlignment="Left" Margin="10,70,0,0" VerticalAlignment="Top" FontFamily="Consolas"/>
+                <TextBlock x:Name="LabelDurability" HorizontalAlignment="Left" Margin="10,48,0,0" VerticalAlignment="Top" FontFamily="Consolas" Width="122" Height="22">
+                    <TextBlock.Text>
+                        <MultiBinding StringFormat="Durability: {0}/{1}">
+                            <Binding RelativeSource= "{RelativeSource FindAncestor, AncestorType={x:Type local:MainWindow}}" Path="Sim.CurrentDurability" Mode="TwoWay"/>
+                            <Binding RelativeSource= "{RelativeSource FindAncestor, AncestorType={x:Type local:MainWindow}}" Path="Sim.CurrentRecipe.Durability" Mode="TwoWay"/>
+                        </MultiBinding>
+                    </TextBlock.Text>
+                </TextBlock>
+                <TextBlock x:Name="TextBlockCP" HorizontalAlignment="Left" Margin="10,72,0,0" VerticalAlignment="Top" FontFamily="Consolas" Height="22" Width="122">
+                    <TextBlock.Text>
+                        <MultiBinding StringFormat="CP: {0}/{1}">
+                            <Binding RelativeSource= "{RelativeSource FindAncestor, AncestorType={x:Type local:MainWindow}}" Path="Sim.CurrentCP" Mode="TwoWay"/>
+                            <Binding RelativeSource= "{RelativeSource FindAncestor, AncestorType={x:Type local:MainWindow}}" Path="Sim.MaxCP" Mode="TwoWay"/>
+                        </MultiBinding>
+                    </TextBlock.Text>
+                </TextBlock>
                 <Label Content="Progress:" HorizontalAlignment="Left" Margin="147,48,0,0" VerticalAlignment="Top" FontFamily="Consolas"/>
                 <Label Content="Quality:" HorizontalAlignment="Left" Margin="153,72,0,0" VerticalAlignment="Top" FontFamily="Consolas"/>
 
-                <ProgressBar x:Name="ProgressBarProgress" HorizontalAlignment="Left" Height="22" Margin="216,48,0,0" VerticalAlignment="Top" Width="188">
+                <ProgressBar HorizontalAlignment="Left" Height="22" Margin="216,48,0,0" VerticalAlignment="Top" Width="188" 
+                             Value="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type local:MainWindow}}, Path=Sim.CurrentProgress, Mode=TwoWay}"
+                              Maximum="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type local:MainWindow}}, Path=Sim.CurrentRecipe.MaxProgress,  Mode=TwoWay}"
+                             />
 
+                <ProgressBar HorizontalAlignment="Left" Height="22" Margin="216,72,0,0" VerticalAlignment="Top" Width="188"
+                             Value="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type local:MainWindow}}, Path=Sim.CurrentQuality}"
+                             Maximum="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type local:MainWindow}}, Path=Sim.CurrentRecipe.MaxQuality}"
+                             />
 
-                </ProgressBar>
-                <ProgressBar x:Name="ProgressBarQuality" HorizontalAlignment="Left" Height="22" Margin="216,72,0,0" VerticalAlignment="Top" Width="188"/>
-                <Label x:Name="LabelProgress" Content="10000/10000" Margin="404,48,0,0" VerticalAlignment="Top" FontFamily="Consolas" HorizontalAlignment="Left" Width="178"/>
-                <Label x:Name="LabelQuality" Content="10000/10000" Margin="404,72,0,0" VerticalAlignment="Top" FontFamily="Consolas" HorizontalAlignment="Left" Width="178"/>
+                <TextBlock Margin="404,48,0,0" Padding="2,2" VerticalAlignment="Top" FontFamily="Consolas" HorizontalAlignment="Left" Width="178" Height="22">
+                    <TextBlock.Text>
+                        <MultiBinding StringFormat="{}{0}/{1}">
+                            <Binding RelativeSource= "{RelativeSource FindAncestor, AncestorType={x:Type local:MainWindow}}" Path="Sim.CurrentProgress" Mode="TwoWay"/>
+                            <Binding RelativeSource= "{RelativeSource FindAncestor, AncestorType={x:Type local:MainWindow}}" Path="Sim.CurrentRecipe.MaxProgress" Mode="TwoWay"/>
+                        </MultiBinding>
+                    </TextBlock.Text>
+                </TextBlock>
+                <TextBlock Margin="404,72,0,0" Padding="2,2" VerticalAlignment="Top" FontFamily="Consolas" HorizontalAlignment="Left" Width="178" Height="22">
+                    <TextBlock.Text>
+                        <MultiBinding StringFormat="{}{0}/{1}">
+                            <Binding RelativeSource= "{RelativeSource FindAncestor, AncestorType={x:Type local:MainWindow}}" Path="Sim.CurrentQuality" Mode="TwoWay"/>
+                            <Binding RelativeSource= "{RelativeSource FindAncestor, AncestorType={x:Type local:MainWindow}}" Path="Sim.CurrentRecipe.MaxQuality" Mode="TwoWay"/>
+                        </MultiBinding>
+                    </TextBlock.Text>
+                </TextBlock>
                 <Separator Height="2" Margin="0,99,0,0" VerticalAlignment="Top"/>
-                <ListView x:Name="ListViewActions" Height="83" Margin="0,123,10,0" VerticalAlignment="Top" FontFamily="Consolas" ScrollViewer.VerticalScrollBarVisibility="Disabled" HorizontalContentAlignment="Left" VerticalContentAlignment="Top" MouseLeftButtonUp="ListViewActions_MouseLeftButtonUp" >
+                <GroupBox  Margin="0,124,0,432">
+                    <GroupBox.Header>
+                        <TextBlock>
+                            <TextBlock.Text>
+                                <MultiBinding StringFormat="Rotation : {0}({1})">
+                                    <Binding RelativeSource= "{RelativeSource FindAncestor, AncestorType={x:Type local:MainWindow}}" Path="Sim.CraftingActionsLength" Mode="OneWay"/>
+                                    <Binding RelativeSource= "{RelativeSource FindAncestor, AncestorType={x:Type local:MainWindow}}" Path="Sim.CraftingActionsTime" Mode="OneWay"/>
+                                </MultiBinding>
+                            </TextBlock.Text>
+                        </TextBlock>
+                    </GroupBox.Header>
+                    <ListView x:Name="ListViewActions" Height="83" Margin="0,0,0,0" ItemContainerStyle="{StaticResource ListViewItemAvailableAction}" VerticalAlignment="Top" FontFamily="Consolas" ScrollViewer.VerticalScrollBarVisibility="Disabled" HorizontalContentAlignment="Left" VerticalContentAlignment="Top" MouseLeftButtonUp="ListViewActions_MouseLeftButtonUp" Background="#FFC7C7C7" >
                     <ListView.ContextMenu>
                         <ContextMenu>
                             <MenuItem Header="Copy Macro" Click="CopyMacroClicked"/>
@@ -128,13 +199,7 @@
                             <StackPanel Orientation="Horizontal"/>
                         </ItemsPanelTemplate>
                     </ListView.ItemsPanel>
-                    <ListView.ItemContainerStyle>
-                        <Style TargetType="ListViewItem">
-                            <Setter Property="BorderThickness" Value="0"/>
-                            <Setter Property="Margin" Value="0"/>
-                            <Setter Property="Padding" Value="0"/>
-                        </Style>
-                    </ListView.ItemContainerStyle>
+
                     <ListView.ItemTemplate>
                         <DataTemplate DataType="CraftingActionContainer">
                             <Grid Height="70"  ToolTip="{Binding Action.Name}">
@@ -147,22 +212,17 @@
                         </DataTemplate>
                     </ListView.ItemTemplate>
                 </ListView>
+                </GroupBox>
                 <GroupBox Header="Available Actions" Margin="0,363,0,0">
                     <StackPanel Orientation="Vertical">
                         <HeaderedContentControl Header="Increases Progress:">
-                            <ListView x:Name="ListViewAvailableIncreasesProgress" MouseLeftButtonUp="ListViewAvailable_MouseLeftButtonUp" ScrollViewer.HorizontalScrollBarVisibility="Disabled"  HorizontalContentAlignment="Left" VerticalContentAlignment="Top">
+                            <ListView x:Name="ListViewAvailableIncreasesProgress" ItemContainerStyle="{StaticResource ListViewItemAvailableAction}"  MouseLeftButtonUp="ListViewAvailable_MouseLeftButtonUp" ScrollViewer.HorizontalScrollBarVisibility="Disabled"  HorizontalContentAlignment="Left" VerticalContentAlignment="Top">
                                 <ListView.ItemsPanel>
                                     <ItemsPanelTemplate>
                                         <WrapPanel Orientation="Horizontal"/>
                                     </ItemsPanelTemplate>
                                 </ListView.ItemsPanel>
-                                <ListView.ItemContainerStyle>
-                                    <Style TargetType="ListViewItem">
-                                        <Setter Property="BorderThickness" Value="1"/>
-                                        <Setter Property="Margin" Value="0"/>
-                                        <Setter Property="Padding" Value="0"/>
-                                    </Style>
-                                </ListView.ItemContainerStyle>
+          
                                 <ListView.ItemTemplate>
                                     <DataTemplate>
                                         <Grid Height="55" Width="35">
@@ -176,19 +236,12 @@
                             </ListView>
                         </HeaderedContentControl>
                         <HeaderedContentControl Header="Increases Quality:">
-                            <ListView x:Name="ListViewAvailableIncreasesQuality" MouseLeftButtonUp="ListViewAvailable_MouseLeftButtonUp" ScrollViewer.HorizontalScrollBarVisibility="Disabled"  HorizontalContentAlignment="Left" VerticalContentAlignment="Top">
+                            <ListView x:Name="ListViewAvailableIncreasesQuality" ItemContainerStyle="{StaticResource ListViewItemAvailableAction}"  MouseLeftButtonUp="ListViewAvailable_MouseLeftButtonUp" ScrollViewer.HorizontalScrollBarVisibility="Disabled"  HorizontalContentAlignment="Left" VerticalContentAlignment="Top">
                                 <ListView.ItemsPanel>
                                     <ItemsPanelTemplate>
                                         <WrapPanel Orientation="Horizontal"/>
                                     </ItemsPanelTemplate>
                                 </ListView.ItemsPanel>
-                                <ListView.ItemContainerStyle>
-                                    <Style TargetType="ListViewItem">
-                                        <Setter Property="BorderThickness" Value="1"/>
-                                        <Setter Property="Margin" Value="0"/>
-                                        <Setter Property="Padding" Value="0"/>
-                                    </Style>
-                                </ListView.ItemContainerStyle>
                                 <ListView.ItemTemplate>
                                     <DataTemplate>
                                         <Grid Height="55" Width="35">
@@ -202,19 +255,13 @@
                             </ListView>
                         </HeaderedContentControl>
                         <HeaderedContentControl Header="Adds Buff:">
-                            <ListView x:Name="ListViewAvailableAddsBuff" MouseLeftButtonUp="ListViewAvailable_MouseLeftButtonUp" ScrollViewer.HorizontalScrollBarVisibility="Disabled"  HorizontalContentAlignment="Left" VerticalContentAlignment="Top">
+                            <ListView x:Name="ListViewAvailableAddsBuff" ItemContainerStyle="{StaticResource ListViewItemAvailableAction}"  MouseLeftButtonUp="ListViewAvailable_MouseLeftButtonUp" ScrollViewer.HorizontalScrollBarVisibility="Disabled"  HorizontalContentAlignment="Left" VerticalContentAlignment="Top">
                                 <ListView.ItemsPanel>
                                     <ItemsPanelTemplate>
                                         <WrapPanel Orientation="Horizontal"/>
                                     </ItemsPanelTemplate>
                                 </ListView.ItemsPanel>
-                                <ListView.ItemContainerStyle>
-                                    <Style TargetType="ListViewItem">
-                                        <Setter Property="BorderThickness" Value="1"/>
-                                        <Setter Property="Margin" Value="0"/>
-                                        <Setter Property="Padding" Value="0"/>
-                                    </Style>
-                                </ListView.ItemContainerStyle>
+    
                                 <ListView.ItemTemplate>
                                     <DataTemplate>
                                         <Grid>
@@ -227,19 +274,13 @@
                             </ListView>
                         </HeaderedContentControl>
                         <HeaderedContentControl Header="Other:">
-                            <ListView x:Name="ListViewAvailableOther" MouseLeftButtonUp="ListViewAvailable_MouseLeftButtonUp" ScrollViewer.HorizontalScrollBarVisibility="Disabled"  HorizontalContentAlignment="Left" VerticalContentAlignment="Top">
+                            <ListView x:Name="ListViewAvailableOther" ItemContainerStyle="{StaticResource ListViewItemAvailableAction}" MouseLeftButtonUp="ListViewAvailable_MouseLeftButtonUp" ScrollViewer.HorizontalScrollBarVisibility="Disabled"  HorizontalContentAlignment="Left" VerticalContentAlignment="Top">
                                 <ListView.ItemsPanel>
                                     <ItemsPanelTemplate>
                                         <WrapPanel Orientation="Horizontal"/>
                                     </ItemsPanelTemplate>
                                 </ListView.ItemsPanel>
-                                <ListView.ItemContainerStyle>
-                                    <Style TargetType="ListViewItem">
-                                        <Setter Property="BorderThickness" Value="1"/>
-                                        <Setter Property="Margin" Value="0"/>
-                                        <Setter Property="Padding" Value="0"/>
-                                    </Style>
-                                </ListView.ItemContainerStyle>
+     
                                 <ListView.ItemTemplate>
                                     <DataTemplate>
                                         <Grid>
@@ -274,34 +315,20 @@
                 <Button x:Name="ButtonAddRotationToDatabase" Content="Add Rotation to Database" HorizontalAlignment="Left" Margin="587,72,0,0" VerticalAlignment="Top" Width="256" Click="ButtonAddRotationToDatabase_Click" FontFamily="Consolas"/>
                 <Button x:Name="ButtonChooseRotation" Content="Choose" HorizontalAlignment="Left" Margin="778,51,0,0" VerticalAlignment="Top" Width="65" FontFamily="Consolas" Click="ButtonChooseRotation_Click"/>
                 <Button x:Name="ButtonEditStepSettings" Content="Edit Step Settings" HorizontalAlignment="Left" Margin="0,101,0,0" VerticalAlignment="Top" Width="146" FontFamily="Consolas" Click="ButtonEditStepSettings_Click"/>
-                <GroupBox Header="Step Solver" Height="147" Margin="0,211,0,0" VerticalAlignment="Top" FontFamily="Consolas">
-                    <TreeView Name="TreeViewStepSolver" Margin="0,0,0,0">
-                        <TreeViewItem Header="Progress">
-                            <ListView x:Name="ListViewStepSolverProgress">
-
-                            </ListView>
-                        </TreeViewItem>
-
-                        <TreeViewItem Name="TreeViewItemStepSolverQuality" Header="Quality">
-                            <ListView x:Name="ListViewStepSolverQuality">
-
-                            </ListView>
-                        </TreeViewItem>
-                    </TreeView>
-                </GroupBox>
             </Grid>
 
         </GroupBox>
         <Label x:Name="LabelScore" Content="Score:" HorizontalAlignment="Left" Margin="10,442,0,0" FontFamily="Consolas" Height="24" VerticalAlignment="Top" />
-        <Button x:Name="ButtonFindBest" Content="Find Best" HorizontalAlignment="Left" Margin="10,471,0,0" Width="75" FontFamily="Consolas" Click="ButtonFindBest_Click" Height="18" VerticalAlignment="Top"/>
+        <Button x:Name="ButtonFindBest" Content="Simulate" HorizontalAlignment="Left" Margin="10,471,0,0" Width="256" FontFamily="Consolas" Click="ButtonFindBest_Click" Height="18" VerticalAlignment="Top"/>
         <Label x:Name="LabelIterations" Content="" HorizontalAlignment="Left" Margin="138,442,0,0" VerticalAlignment="Top" Width="128"/>
-        <Button x:Name="ButtonFindBestForActions" Content="Find Best With Actions" HorizontalAlignment="Left" Margin="90,471,0,0" VerticalAlignment="Top" Width="176" FontFamily="Consolas" Height="18" Click="ButtonFindBest_Click"/>
-        <Label Content="Task Count:" HorizontalAlignment="Left" Margin="10,496,0,0" VerticalContentAlignment="Center" VerticalAlignment="Top" Width="147" FontFamily="Consolas"/>
-        <TextBox x:Name="TextBoxTaskCount" HorizontalAlignment="Left" Height="24" Margin="162,496,0,0" TextWrapping="Wrap" Text="12" VerticalContentAlignment="Center" VerticalAlignment="Top" Width="104"/>
-        <Label Content="Chromosome Count:" HorizontalAlignment="Left" Margin="10,525,0,0" VerticalContentAlignment="Center" VerticalAlignment="Top" Width="147" FontFamily="Consolas"/>
-        <TextBox x:Name="TextBoxChromosomeCount" HorizontalAlignment="Left" Height="24" Margin="162,525,0,0" TextWrapping="Wrap" Text="150" VerticalContentAlignment="Center" VerticalAlignment="Top" Width="104"/>
-        <Button x:Name="ButtonAddFromDatabase" Content="Add From Database" HorizontalAlignment="Left" Margin="138,554,0,0" VerticalAlignment="Top" Width="128" Click="ButtonAddFromDatabase_Click"/>
-        <Button x:Name="ButtonAddToDatabase" Content="Add To Database" HorizontalAlignment="Left" Margin="138,579,0,0" VerticalAlignment="Top" Width="128" Click="ButtonAddToDatabase_Click"/>
+        <Label Content="Task Count:" HorizontalAlignment="Left" Margin="10,565,0,0" VerticalContentAlignment="Center" VerticalAlignment="Top" Width="147" FontFamily="Consolas"/>
+        <TextBox x:Name="TextBoxTaskCount" HorizontalAlignment="Left" Height="24" Margin="162,565,0,0" TextWrapping="Wrap" Text="12" VerticalContentAlignment="Center" VerticalAlignment="Top" Width="104"/>
+        <Label Content="Chromosome Count:" HorizontalAlignment="Left" Margin="10,594,0,0" VerticalContentAlignment="Center" VerticalAlignment="Top" Width="147" FontFamily="Consolas"/>
+        <TextBox x:Name="TextBoxChromosomeCount" HorizontalAlignment="Left" Height="24" Margin="162,594,0,0" TextWrapping="Wrap" Text="150" VerticalContentAlignment="Center" VerticalAlignment="Top" Width="104"/>
+        <Button x:Name="ButtonAddFromDatabase" Content="Add From Database" HorizontalAlignment="Left" Margin="138,623,0,0" VerticalAlignment="Top" Width="128" Click="ButtonAddFromDatabase_Click"/>
+        <Button x:Name="ButtonAddToDatabase" Content="Add To Database" HorizontalAlignment="Left" Margin="138,648,0,0" VerticalAlignment="Top" Width="128" Click="ButtonAddToDatabase_Click"/>
+        <CheckBox x:Name="CheckBoxLeaveActions" Content="Leave Current Actions" HorizontalAlignment="Left" Margin="10,494,0,0" VerticalAlignment="Top"/>
+        <CheckBox x:Name="CheckBoxUseDictionary" Content="Use Dictionary(High Memory Usage)" HorizontalAlignment="Left" Margin="10,514,0,0" VerticalAlignment="Top"/>
 
 
 

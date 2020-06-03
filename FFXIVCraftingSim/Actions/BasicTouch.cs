@@ -11,6 +11,7 @@ namespace FFXIVCraftingSim.Actions
         public override ushort Id => 2;
 
         public override string Name => "Basic Touch";
+        public override int Level => 5;
         public override bool IsBuff => false;
         public override bool IncreasesProgress => false;
         public override bool IncreasesQuality => true;

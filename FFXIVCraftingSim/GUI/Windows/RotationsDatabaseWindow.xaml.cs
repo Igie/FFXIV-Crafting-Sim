@@ -69,6 +69,11 @@ namespace FFXIVCraftingSim.GUI.Windows
                 DataGridRotations.ItemsSource = rotations;
             });
         }
+
+        private void FilterForCurrentStatsClicked(object sender, RoutedEventArgs e)
+        {
+
+        }
     }
 
     public class RotationInfoContainer
@@ -80,7 +85,13 @@ namespace FFXIVCraftingSim.GUI.Windows
         public RotationInfoContainer(RecipeSolutionInfo rotationInfo, ClassJobInfo classJobInfo)
         {
             RotationInfo = rotationInfo;
-            Images = RotationInfo.Rotation.Array.Select(x=> new BitmapSourceContainer(G.Actions[CraftingAction.CraftingActions[x].Name].Images[classJobInfo])).ToArray();
+            try
+            {
+                Images = RotationInfo.Rotation.Array.Select(x => new BitmapSourceContainer(G.Actions[CraftingAction.CraftingActions[x].Name].Images[classJobInfo])).ToArray();
+            } catch(Exception e)
+            {
+                Debugger.Break();
+            }
         }
     }
 

@@ -22,7 +22,10 @@ namespace FFXIVCraftingSim.Actions.Buffs
             sim.InnovationBuff = null;
             base.Remove(sim);
         }
-    }
 
-    
+        public override CraftingBuff Clone()
+        {
+            return new InnovationBuff { Stack = Stack, NeedsRemove = NeedsRemove };
+        }
+    }
 }

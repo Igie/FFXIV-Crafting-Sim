@@ -24,6 +24,7 @@ namespace FFXIVCraftingSim.Types.GameData
 
         public ClassJobInfo ClassJob { get; set; }
         public int Level { get; set; }
+        public int ClassJobLevel { get; set; }
         public int RequiredCraftsmanship { get; set; }
         public int RequiredControl { get; set; }
 
@@ -32,6 +33,14 @@ namespace FFXIVCraftingSim.Types.GameData
         public int MaxQuality { get; set; }
 
         public List<ItemInfo> Ingredients { get; set; }
+
+        public int RotationsCount
+        {
+            get
+            {
+                return G.RecipeRotations[GetAbstractData()].Count;
+            }
+        }
 
         public string SearchString
         {
@@ -46,17 +55,21 @@ namespace FFXIVCraftingSim.Types.GameData
             Ingredients = new List<ItemInfo>(10);
         }
 
+        private AbstractRecipeInfo AbstractRecipeInfo;
+
         public AbstractRecipeInfo GetAbstractData()
         {
-            return new AbstractRecipeInfo
-            {
-                Level = Level,
-                RequiredCraftsmanship = RequiredCraftsmanship,
-                RequiredControl = RequiredControl,
-                Durability = Durability,
-                MaxProgress = MaxProgress,
-                MaxQuality = MaxQuality
-            };
+            if (AbstractRecipeInfo == null)
+                AbstractRecipeInfo = new AbstractRecipeInfo
+                {
+                    Level = Level,
+                    RequiredCraftsmanship = RequiredCraftsmanship,
+                    RequiredControl = RequiredControl,
+                    Durability = Durability,
+                    MaxProgress = MaxProgress,
+                    MaxQuality = MaxQuality
+                };
+            return AbstractRecipeInfo;
         }
     }
 

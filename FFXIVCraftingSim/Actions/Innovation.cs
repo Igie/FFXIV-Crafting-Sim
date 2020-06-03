@@ -12,6 +12,7 @@ namespace FFXIVCraftingSim.Actions
         public override ushort Id => 9;
 
         public override string Name => "Innovation";
+        public override int Level => 26;
         public override bool IsBuff => true;
         public override bool IncreasesProgress => false;
         public override bool IncreasesQuality => false;

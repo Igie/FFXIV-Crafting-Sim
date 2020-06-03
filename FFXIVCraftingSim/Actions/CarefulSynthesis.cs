@@ -11,6 +11,7 @@ namespace FFXIVCraftingSim.Actions
         public override ushort Id => 13;
 
         public override string Name => "Careful Synthesis";
+        public override int Level => 62;
         public override bool IsBuff => false;
         public override bool IncreasesProgress => true;
         public override bool IncreasesQuality => false;

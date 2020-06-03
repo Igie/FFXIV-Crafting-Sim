@@ -15,5 +15,10 @@ namespace FFXIVCraftingSim.Actions.Buffs
             sim.InnerQuietBuff = null;
             base.Remove(sim);
         }
+
+        public override CraftingBuff Clone()
+        {
+            return new InnerQuietBuff { Stack = Stack, NeedsRemove = NeedsRemove };
+        }
     }
 }

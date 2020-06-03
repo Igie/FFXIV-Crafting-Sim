@@ -22,7 +22,10 @@ namespace FFXIVCraftingSim.Actions.Buffs
             sim.ObserveBuff = null;
             base.Remove(sim);
         }
-    }
 
-    
+        public override CraftingBuff Clone()
+        {
+            return new ObserveBuff { Stack = Stack, NeedsRemove = NeedsRemove };
+        }
+    }  
 }

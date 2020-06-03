@@ -28,7 +28,7 @@ namespace FFXIVCraftingSim.Solving
             var actions = sim.GetCraftingActions().ToList();
 
             actions.AddRange(Rotation.Array.Select(x => CraftingAction.CraftingActions[x]));
-            copy.AddActions(actions);
+            copy.AddActions(true, actions);
 
             return new RotationStats(
                 Rotation.Array.Length,

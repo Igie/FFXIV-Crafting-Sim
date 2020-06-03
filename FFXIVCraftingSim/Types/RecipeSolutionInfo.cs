@@ -9,11 +9,11 @@ namespace FFXIVCraftingSim.Types
 {
     public class RecipeSolutionInfo : IEquatable<RecipeSolutionInfo>
     {
+        public int MinLevel { get; set; }
         public int MaxCraftsmanship { get; set; }
         public int MinCraftsmanship { get; set; }
         public int MinControl { get; set; }
         public int CP { get; set; }
-        public double Score { get; set; }
 
         public int RotationTime
         {
@@ -39,11 +39,11 @@ namespace FFXIVCraftingSim.Types
 
         public bool IsBetterThanOrEqual(RecipeSolutionInfo other)
         {
-            return MaxCraftsmanship >= other.MaxCraftsmanship &&
+            return MinLevel <= other.MinLevel &&
+                MaxCraftsmanship >= other.MaxCraftsmanship &&
                 MinCraftsmanship <= other.MinCraftsmanship &&
                 MinControl <= other.MinControl &&
                 CP <= other.CP &&
-                Score >= other.Score &&
                 RotationTime <= other.RotationTime;
         }
 
@@ -55,7 +55,8 @@ namespace FFXIVCraftingSim.Types
         public override int GetHashCode()
         {
             int hash = 7;
-            hash ^= MaxCraftsmanship;
+            hash ^= MinLevel;
+            hash ^= MaxCraftsmanship * 7;
             hash ^= MinCraftsmanship * 3;
             hash ^= MinControl * 13;
             hash ^= CP * 7;
@@ -67,15 +68,15 @@ namespace FFXIVCraftingSim.Types
         {
             if (other is null)
                 return false;
-            return MaxCraftsmanship == other.MaxCraftsmanship &&
+            return MinLevel == other.MinLevel &&
+                MaxCraftsmanship == other.MaxCraftsmanship &&
                 MinCraftsmanship == other.MinCraftsmanship &&
                 MinControl == other.MinControl &&
                 CP == other.CP &&
-                Score == other.Score &&
                 Rotation.Equals(other.Rotation);
         }
 
-        public static RecipeSolutionInfo FromSim(CraftingSim sim)
+        public static RecipeSolutionInfo FromSim(CraftingSim sim, bool findMinLevel)
         {
             if (sim == null ||
                 sim.CurrentProgress < sim.CurrentRecipe.MaxProgress ||
@@ -84,10 +85,36 @@ namespace FFXIVCraftingSim.Types
             RecipeSolutionInfo result = new RecipeSolutionInfo();
             CraftingSim s = sim.Clone();
             var actions = sim.GetCraftingActions();
-            s.AddActions(actions);
+            s.AddActions(true, actions);
             result.CP = s.MaxCP - s.CurrentCP;
-            result.Score = s.Score;
+
             result.Rotation = actions.Select(x => (ushort)x.Id).ToArray();
+            s.Level = s.CurrentRecipe.ClassJobLevel;
+            s.Level = sim.Level;
+            if (findMinLevel)
+            {
+                int minLevelFromActionsLevel = actions.Max(x => x.Level);
+                int minLevelFromSuccess = s.Level;
+
+                bool craftFailed = false;
+
+                while (!craftFailed)
+                {
+                    s.RemoveActions();
+                    minLevelFromSuccess--;
+                    s.Level = minLevelFromSuccess;
+                    s.AddActions(true, actions);
+                    craftFailed = s.CurrentProgress < s.CurrentRecipe.MaxProgress || s.CurrentQuality < s.CurrentRecipe.MaxQuality;
+                }
+
+                minLevelFromSuccess++;
+
+                result.MinLevel = Math.Max(Math.Max(minLevelFromSuccess, minLevelFromActionsLevel), s.CurrentRecipe.ClassJobLevel);
+            }
+            else
+                result.MinLevel = sim.Level;
+
+            s.Level = result.MinLevel;
 
             int recipeProgress = s.CurrentRecipe.MaxProgress;
             int recipeQuality = s.CurrentRecipe.MaxQuality;
@@ -101,22 +128,23 @@ namespace FFXIVCraftingSim.Types
             }
             s.CraftsmanshipBuff++;
             s.RemoveActions();
-            s.AddActions(actions);
-            result.MinCraftsmanship = s.Craftsmanship;
+            s.AddActions(true, actions);
+            result.MinCraftsmanship = Math.Max(s.Craftsmanship, sim.CurrentRecipe.RequiredCraftsmanship);
+
 
             while (s.CurrentQuality >= recipeQuality)
             {
                 s.ControlBuff--;
                 s.ExecuteActions();
             }
-            result.MinControl = s.Control + 1;
+            result.MinControl = Math.Max(s.Control + 1, sim.CurrentRecipe.RequiredControl);
             s.CraftsmanshipBuff = oldCraftsmanshipBuff;
             s.ControlBuff = oldControlBuff;
 
             int oldActionsLength = actions.Length;
             int newActionsLength = oldActionsLength;
             s.RemoveActions();
-            s.AddActions(actions);
+            s.AddActions(true, actions);
 
             while(newActionsLength >= oldActionsLength)
             {

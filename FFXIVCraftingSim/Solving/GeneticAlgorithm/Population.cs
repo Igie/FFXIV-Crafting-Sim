@@ -19,7 +19,7 @@ namespace FFXIVCraftingSim.Solving.GeneticAlgorithm
         public int MaxSize { get; private set; }
         public int DefaultChromosomeSize { get; private set; }
         public int ChromosomeSize { get; private set; }
-        public ushort[] PossibleValues { get; private set; }
+        public ushort[] AvailableValues { get; private set; }
 
         public Chromosome[] Chromosomes { get; private set; }
 
@@ -37,7 +37,7 @@ namespace FFXIVCraftingSim.Solving.GeneticAlgorithm
 
         public event Action<Population> GenerationRan = delegate { };
 
-        public Population(int index, CraftingSim sim, int maxSize, int chromosomeSize, ushort[] possibleValues, ushort[] initialValues = null)
+        public Population(int index, CraftingSim sim, int maxSize, int chromosomeSize, ushort[] availableValues, ushort[] initialValues = null)
         {
             Index = index;
             Sim = sim;
@@ -45,11 +45,11 @@ namespace FFXIVCraftingSim.Solving.GeneticAlgorithm
             Chromosomes = new Chromosome[MaxSize];
             DefaultChromosomeSize = chromosomeSize;
             ChromosomeSize = chromosomeSize;
-            PossibleValues = possibleValues;
+            AvailableValues = availableValues;
             LeaveInitialValues = false;
             for (int i = 0; i < MaxSize; i++)
             {
-                Chromosomes[i] = new Chromosome(sim, possibleValues, chromosomeSize);
+                Chromosomes[i] = new Chromosome(sim, availableValues, chromosomeSize);
             }
 
             if (initialValues != null)
@@ -69,6 +69,13 @@ namespace FFXIVCraftingSim.Solving.GeneticAlgorithm
             CurrentGeneration = 0;
         }
 
+        public void ChangeAvailableValues(ushort[] newValues)
+        {
+            AvailableValues = newValues;
+            for (int i = 0; i < MaxSize; i++)
+                Chromosomes[i].AvailableValues = newValues;
+        }
+
         public void AddChromosomes(ushort[][] values, bool sort)
         {
             for (int i = 0; i < values.Length; i++)
@@ -77,15 +84,18 @@ namespace FFXIVCraftingSim.Solving.GeneticAlgorithm
 
         public void AddChromosome(ushort[] values, bool sort)
         {
-            ushort[] newValues = new ushort[values.Length];
-            values.CopyTo(newValues, 0);
+            ushort[] newValues = new ushort[ChromosomeSize];
 
-            if (InitialValues != null)
+                values.CopyTo(newValues, 0);
+           
+            
+
+            if (LeaveInitialValues)
             {
                 InitialValues.CopyTo(newValues, 0);
             }
 
-            AddChromosome(new Chromosome(Sim, PossibleValues, ChromosomeSize, newValues), sort);
+            AddChromosome(new Chromosome(Sim, AvailableValues, ChromosomeSize, newValues), sort);
         }
 
         public void AddChromosome(Chromosome c, bool sort)
@@ -199,8 +209,8 @@ namespace FFXIVCraftingSim.Solving.GeneticAlgorithm
             Array.Copy(second.Values, index, firstArray, index, size);
 
 
-            Chromosome firstNew = new Chromosome(Sim, PossibleValues, firstArray.Length, firstArray);
-            Chromosome secondNew = new Chromosome(Sim, PossibleValues, secondArray.Length, secondArray);
+            Chromosome firstNew = new Chromosome(Sim, AvailableValues, firstArray.Length, firstArray);
+            Chromosome secondNew = new Chromosome(Sim, AvailableValues, secondArray.Length, secondArray);
 
             if (LeaveInitialValues)
             {
@@ -237,7 +247,7 @@ namespace FFXIVCraftingSim.Solving.GeneticAlgorithm
 
                     for (int i = index; i < end; i++)
                     {
-                        newArray[i] = PossibleValues.GetRandom();
+                        newArray[i] = AvailableValues.GetRandom();
                     }
 
                     if (LeaveInitialValues)
@@ -264,7 +274,7 @@ namespace FFXIVCraftingSim.Solving.GeneticAlgorithm
                 Array.Copy(InitialValues, newArray, InitialValues.Length);
             }
 
-            Chromosome newChromosome = new Chromosome(Sim, PossibleValues, ChromosomeSize, newArray);
+            Chromosome newChromosome = new Chromosome(Sim, AvailableValues, ChromosomeSize, newArray);
             if (newChromosome.Fitness > chromosome.Fitness && !Contains(newChromosome))
                 Chromosomes[cIndex] = newChromosome;
         }
@@ -279,7 +289,7 @@ namespace FFXIVCraftingSim.Solving.GeneticAlgorithm
 
             for (int i = 0; i < MaxSize; i++)
                 if (Chromosomes[i] is null)
-                    Chromosomes[i] = new Chromosome(Sim, PossibleValues, ChromosomeSize);
+                    Chromosomes[i] = new Chromosome(Sim, AvailableValues, ChromosomeSize);
         }
 
         public bool Contains(Chromosome chromosome)
@@ -294,7 +304,9 @@ namespace FFXIVCraftingSim.Solving.GeneticAlgorithm
         public void Reevaluate(CraftingSim sim, bool leaveInitialValues)
         {
             LeaveInitialValues = leaveInitialValues;
+            Sim.SetRecipe(sim.CurrentRecipe);
             sim.CopyTo(Sim);
+
             InitialValues = sim.GetCraftingActions().Select(x => (ushort)x.Id).ToArray();
             ChromosomeSize = DefaultChromosomeSize;
 
@@ -303,6 +315,7 @@ namespace FFXIVCraftingSim.Solving.GeneticAlgorithm
             {
                 if (LeaveInitialValues)
                     Array.Copy(InitialValues, Chromosomes[i].Values, InitialValues.Length);
+                Chromosomes[i].Sim.SetRecipe(sim.CurrentRecipe);
                 sim.CopyTo(Chromosomes[i].Sim);
                 Chromosomes[i].Fitness = Chromosomes[i].Evaluate();
             }

@@ -11,6 +11,7 @@ namespace FFXIVCraftingSim.Actions
         public override ushort Id => 21;
 
         public override string Name => "Focused Synthesis";
+        public override int Level => 67;
         public override bool IsBuff => false;
         public override bool IncreasesProgress => true;
         public override bool IncreasesQuality => false;

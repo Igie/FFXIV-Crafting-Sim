@@ -27,6 +27,9 @@ namespace FFXIVCraftingSim.Actions.Buffs
                 sim.CraftingBuffs.Remove(this);
         }
 
-
+        public virtual CraftingBuff Clone()
+        {
+            throw new NotImplementedException();
+        }
     }
 }

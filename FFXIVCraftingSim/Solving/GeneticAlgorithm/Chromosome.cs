@@ -15,47 +15,55 @@ namespace FFXIVCraftingSim.Solving.GeneticAlgorithm
         public Population Population { get; private set; }
         public ushort[] Values { get; set; }
         public ushort[] UsableValues { get; set; }
-        private ushort[] PossibleValues { get; set; }
+        public ushort[] AvailableValues { get; set; }
         public double Fitness { get; set; }
 
         public int Hash { get; private set; }
 
         public int Size { get; private set; }
 
-        public Chromosome(CraftingSim sim, ushort[] possibleValues, int valueCount, ushort[] values)
+        public Chromosome(CraftingSim sim, ushort[] availableValues, int valueCount, ushort[] values)
         {
             Sim = sim.Clone();
-            PossibleValues = possibleValues;
+            AvailableValues = availableValues;
             Values = new ushort[valueCount];
             values.CopyTo(Values, 0);
             Fitness = Evaluate();
         }
 
-        public Chromosome(CraftingSim sim, ushort[] possibleValues, int valueCount)
+        public Chromosome(CraftingSim sim, ushort[] availableValues, int valueCount)
         {
             Sim = sim.Clone();
-            PossibleValues = possibleValues;
+            AvailableValues = availableValues;
             Values = new ushort[valueCount];
 
 
             for (int i = 0; i < Values.Length; i++)
             {
-                Values[i] = PossibleValues.GetRandom();
+                Values[i] = AvailableValues.GetRandom();
             }
             Fitness = Evaluate();
         }
 
         public Chromosome Clone()
         {
-            return new Chromosome(Sim, PossibleValues, Values.Length, Values);
+            return new Chromosome(Sim, AvailableValues, Values.Length, Values);
         }
 
         public double Evaluate()
         {
             Sim.RemoveActions();
             UsableValues = Values.Where(x => x > 0).ToArray();
-            var values = UsableValues.Select(y => CraftingAction.CraftingActions[y]).ToArray();
-            Sim.AddActions(values);
+            try
+            {
+                var values = UsableValues.Select(y => CraftingAction.CraftingActions[y]).ToArray();
+                Sim.AddActions(true, values);
+            }
+            catch (Exception e)
+            {
+                Debugger.Break();
+            }
+           
             Size = Sim.CraftingActionsLength;
             UsableValues = UsableValues.Take(Size).ToArray();
             Hash = GetHashCode();

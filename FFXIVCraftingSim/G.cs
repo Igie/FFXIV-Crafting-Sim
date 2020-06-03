@@ -1,4 +1,5 @@
 ﻿using FFXIVCraftingSim.Converters;
+using FFXIVCraftingSim.Solving;
 using FFXIVCraftingSim.Stream;
 using FFXIVCraftingSim.Types;
 using FFXIVCraftingSim.Types.GameData;
@@ -36,6 +37,8 @@ namespace FFXIVCraftingSim
         public static Task ReloadTask { get; private set; }
 
         public static event System.Action Loaded = delegate { };
+
+        public static Dictionary<ExtendedArray<ushort>, CraftingSim> CraftingStates { get; private set; } = new Dictionary<ExtendedArray<ushort>, CraftingSim>();
 
         public static void Init(MainWindow window)
         {
@@ -93,6 +96,7 @@ namespace FFXIVCraftingSim
                         Id = s.ReadInt(),
                         Name = s.ReadString(),
                         Level = s.ReadInt(),
+                        ClassJobLevel = s.ReadInt(),
                         ClassJob = (ClassJobInfo)s.ReadInt(),
                         RequiredCraftsmanship = s.ReadInt(),
                         RequiredControl = s.ReadInt(),
@@ -132,6 +136,7 @@ namespace FFXIVCraftingSim
                             Id = value.Key,
                             Name = value.ResultItem.Name,
                             Level = recipeLevelTable.Key,
+                            ClassJobLevel = recipeLevelTable.ClassJobLevel,
                             ClassJob = (ClassJobInfo)value.ClassJob.Key,
                             RequiredCraftsmanship = recipeLevelTable.SuggestedCraftsmanship,
                             RequiredControl = recipeLevelTable.SuggestedControl,
@@ -175,6 +180,7 @@ namespace FFXIVCraftingSim
                 s.WriteInt(value.Id);
                 s.WriteString(value.Name);
                 s.WriteInt(value.Level);
+                s.WriteInt(value.ClassJobLevel);
                 s.WriteInt((int)value.ClassJob);
                 s.WriteInt(value.RequiredCraftsmanship);
                 s.WriteInt(value.RequiredControl);
@@ -580,11 +586,11 @@ namespace FFXIVCraftingSim
                     for (int j = 0; j < ll; j++)
                     {
                         RecipeSolutionInfo rotation = new RecipeSolutionInfo();
+                        rotation.MinLevel = s.ReadInt();
                         rotation.MaxCraftsmanship = s.ReadInt();
                         rotation.MinCraftsmanship = s.ReadInt();
                         rotation.MinControl = s.ReadInt();
                         rotation.CP = s.ReadInt();
-                        rotation.Score = s.ReadDouble();
                         ushort l = s.ReadUShort();
                         ushort[] array = new ushort[l];
                         for (int k = 0; k < l; k++)
@@ -647,11 +653,11 @@ namespace FFXIVCraftingSim
                 s.WriteUShort((ushort)rotations.Count);
                 for (int j = 0; j < rotations.Count; j++)
                 {
+                    s.WriteInt(rotations[j].MinLevel);
                     s.WriteInt(rotations[j].MaxCraftsmanship);
                     s.WriteInt(rotations[j].MinCraftsmanship);
                     s.WriteInt(rotations[j].MinControl);
                     s.WriteInt(rotations[j].CP);
-                    s.WriteDouble(rotations[j].Score);
                     s.WriteUShort((ushort)rotations[j].Rotation.Array.Length);
                     for (int k = 0; k < rotations[j].Rotation.Array.Length; k++)
                         s.WriteUShort(rotations[j].Rotation.Array[k]);
@@ -723,7 +729,7 @@ namespace FFXIVCraftingSim
             if (sim == null || sim.CurrentRecipe == null || sim.CustomRecipe)
                 return;
                CraftingSim s = sim.Clone();
-            s.AddActions(sim.GetCraftingActions());
+            s.AddActions(true, sim.GetCraftingActions());
 
             var abstractData = s.CurrentRecipe.GetAbstractData();
             if (!G.RecipeRotations.ContainsKey(abstractData))
@@ -735,17 +741,31 @@ namespace FFXIVCraftingSim
             if (s.CurrentProgress < s.CurrentRecipe.MaxProgress || s.CurrentQuality < s.CurrentRecipe.MaxQuality)
                 return;
 
-            RecipeSolutionInfo info = RecipeSolutionInfo.FromSim(s);
+            RecipeSolutionInfo infoWithMinLevel = RecipeSolutionInfo.FromSim(s, true);
+            RecipeSolutionInfo infoWithoutMinLevel = RecipeSolutionInfo.FromSim(s, false);
 
+            var list = G.RecipeRotations[abstractData];
 
-            if (!G.RecipeRotations[abstractData].Contains(info) && !G.RecipeRotations[abstractData].Any(x => x.IsBetterThan(info)))
-                G.RecipeRotations[abstractData].Add(info);
+            if (!list.Contains(infoWithMinLevel) && !list.Any(x => x.IsBetterThan(infoWithMinLevel)))
+                list.Add(infoWithMinLevel);
 
-            for (int i = 0; i < G.RecipeRotations[abstractData].Count; i++)
+            for (int i = 0; i < list.Count; i++)
             {
-                if (info.IsBetterThan(G.RecipeRotations[abstractData][i]))
+                if (infoWithMinLevel.IsBetterThan(list[i]))
                 {
-                    G.RecipeRotations[abstractData].RemoveAt(i);
+                    list.RemoveAt(i);
+                    i--;
+                }
+            }
+
+            if (!list.Contains(infoWithoutMinLevel) && !list.Any(x => x.IsBetterThan(infoWithoutMinLevel)))
+                list.Add(infoWithoutMinLevel);
+
+            for (int i = 0; i < list.Count; i++)
+            {
+                if (infoWithoutMinLevel.IsBetterThan(list[i]))
+                {
+                    list.RemoveAt(i);
                     i--;
                 }
             }

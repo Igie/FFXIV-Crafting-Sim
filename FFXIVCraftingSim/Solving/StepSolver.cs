@@ -52,7 +52,7 @@ namespace FFXIVCraftingSim.Solving
            while(true)
             {
                 Sim.RemoveActions();
-                Sim.AddActions(actions.Select(x => C.CraftingActions[x]));
+                Sim.AddActions(true, actions.Select(x => C.CraftingActions[x]));
                 QValues[Sim.GetCraftingActions().Select(x => x.Id).ToArray()] = Sim.CurrentQuality;
                 int index = 0;
                 while (a[index] == a.Last())
@@ -69,7 +69,7 @@ namespace FFXIVCraftingSim.Solving
         private void SolveForCurrentActions(CraftingAction[] availableActions, CraftingAction[] actions)
         {
             Sim.RemoveActions();
-            Sim.AddActions(actions);
+            Sim.AddActions(true, actions);
             var currentActions = Sim.GetCraftingActions();
 
             if (currentActions.Length == actions.Length)
@@ -143,7 +143,7 @@ namespace FFXIVCraftingSim.Solving
                 CraftingSim s = new CraftingSim();
                 sim.CopyTo(s, true);
 
-                s.AddActions(CraftingAction.CraftingActions[i]);
+                s.AddActions(true, C.CraftingActions[i]);
                 CraftingState state = GetState(s);
                 if (s.CurrentQuality >= s.CurrentRecipe.MaxQuality)
                 {

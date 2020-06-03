@@ -11,6 +11,7 @@ namespace FFXIVCraftingSim.Actions
         public override ushort Id => 18;
 
         public override string Name => "Groundwork";
+        public override int Level => 72;
         public override bool IsBuff => false;
         public override bool IncreasesProgress => true;
         public override bool IncreasesQuality => false;

@@ -1,9 +1,11 @@
 ﻿using FFXIVCraftingSim.Actions;
 using FFXIVCraftingSim.Actions.Buffs;
+using FFXIVCraftingSim.Solving;
 using FFXIVCraftingSim.Types;
 using FFXIVCraftingSim.Types.GameData;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
@@ -11,11 +13,12 @@ using System.Threading.Tasks;
 
 namespace FFXIVCraftingSim
 {
-    public class CraftingSim
+    public class CraftingSim : INotifyPropertyChanged
     {
         public const int MaxActions = 40;
 
         private int level;
+
         public int Level
         {
             get
@@ -24,15 +27,57 @@ namespace FFXIVCraftingSim
             }
             set
             {
+                if (level == value) return;
                 ActualLevel = G.GetPlayerLevel(value);
                 level = value;
                 if (CurrentRecipe != null)
                     LevelDifference = G.GetCraftingLevelDifference(ActualLevel - CurrentRecipe.Level);
+                ExecuteActions();
+                PropertyChanged(this, new PropertyChangedEventArgs("Level"));
             }
         }
-        public int BaseCraftsmanship { get; set; }
-        public int BaseControl { get; set; }
-        public int BaseMaxCP { get; set; }
+
+        private int _BaseCraftsmanship { get; set; }
+        private int _BaseControl { get; set; }
+        private int _BaseMaxCP { get; set; }
+
+
+        public int BaseCraftsmanship
+        {
+            get { return _BaseCraftsmanship; }
+            set
+            {
+                if (_BaseCraftsmanship == value) return;
+                _BaseCraftsmanship = value;
+                ExecuteActions();
+                PropertyChanged(this, new PropertyChangedEventArgs("BaseCraftsmanship"));
+            }
+        }
+
+        public int BaseControl
+        {
+            get { return _BaseControl; }
+            set
+            {
+                if (_BaseControl == value) return;
+                _BaseControl = value;
+                PropertyChanged(this, new PropertyChangedEventArgs("BaseControl"));
+            }
+        }
+
+        public int BaseMaxCP
+        {
+            get { return _BaseMaxCP; }
+            set
+            {
+                if (_BaseMaxCP == value) return;
+                _BaseMaxCP = value;
+
+                PropertyChanged(this, new PropertyChangedEventArgs("BaseMaxCP"));
+                PropertyChanged(this, new PropertyChangedEventArgs("MaxCP"));
+                ExecuteActions();
+            }
+        }
 
         public int ActualLevel { get; private set; }
         public int Craftsmanship
@@ -73,20 +118,115 @@ namespace FFXIVCraftingSim
             }
 
         }
+
+        private int _CraftsmanshipBuff { get; set; }
+        public int CraftsmanshipBuff
+        {
+            get { return _CraftsmanshipBuff; }
+            set
+            {
+                if (_CraftsmanshipBuff == value) return;
+                _CraftsmanshipBuff = value;
+                PropertyChanged(this, new PropertyChangedEventArgs("CraftsmanshipBuff"));
+                PropertyChanged(this, new PropertyChangedEventArgs("Craftsmanship"));
+            }
+        }
+
+        private int _ControlBuff { get; set; }
+        public int ControlBuff
+        {
+            get { return _ControlBuff; }
+            set
+            {
+                if (_ControlBuff == value) return;
+                _ControlBuff = value;
+                PropertyChanged(this, new PropertyChangedEventArgs("ControlBuff"));
+                PropertyChanged(this, new PropertyChangedEventArgs("Control"));
+            }
+        }
+
+        private int _MaxCPBuff { get; set; }
+        public int MaxCPBuff
+        {
+            get { return _MaxCPBuff;  }
+            set
+            {
+                if (_MaxCPBuff == value) return;
+                _MaxCPBuff = value;
+                PropertyChanged(this, new PropertyChangedEventArgs("MaxCPBuff"));
+                PropertyChanged(this, new PropertyChangedEventArgs("MaxCP"));
+            }
+        }
         
-        public int CraftsmanshipBuff { get; set; }
-        public int ControlBuff { get; set; }
-        public int MaxCPBuff { get; set; }
-        
-        public int Step { get; private set; }
-        public int CurrentDurability { get; set; }
-        public int CurrentProgress { get; set; }
-        public int CurrentQuality { get; set; }
-        public int CurrentCP { get; set; }
+        public int Step { get; set; }
+
+        private int _CurrentDurability { get; set; }
+        public int CurrentDurability
+        {
+            get { return _CurrentDurability; }
+            set
+            {
+                _CurrentDurability = value;
+                PropertyChanged(this, new PropertyChangedEventArgs("CurrentDurability"));
+            }
+        }
+
+        private int _CurrentProgress { get; set; }
+        public int CurrentProgress
+        {
+            get { return _CurrentProgress;  }
+            set
+            {
+                //if (_CurrentProgress == value) return;
+                _CurrentProgress = value;
+                PropertyChanged(this, new PropertyChangedEventArgs("CurrentProgress"));
+            }
+        }
+
+        private int _CurrentQuality { get; set; }
+        public int CurrentQuality
+        {
+            get { return _CurrentQuality; }
+            set
+            {
+                //if (_CurrentQuality == value) return;
+                _CurrentQuality = value;
+                PropertyChanged(this, new PropertyChangedEventArgs("CurrentQuality"));
+            }
+        }
+
+        public int _CurrentCP { get; set; }
+        public int CurrentCP
+        {
+            get
+            { return _CurrentCP; }
+
+            set
+            {
+                if (_CurrentCP == value) return;
+                _CurrentCP = value;
+                PropertyChanged(this, new PropertyChangedEventArgs("CurrentCP"));
+            }
+        }
+
+
 
         public CraftingSimStepSettings[] StepSettings { get; private set; }
 
-        public RecipeInfo CurrentRecipe { get; private set; }
+        private RecipeInfo _CurrentRecipe { get; set; }
+
+        public RecipeInfo CurrentRecipe
+        {
+            get { return _CurrentRecipe;  }
+            private set
+            {
+                if (_CurrentRecipe == value) return;
+                _CurrentRecipe = value;
+                ExecuteActions();
+                PropertyChanged(this, new PropertyChangedEventArgs("CurrentRecipe"));
+                
+            }
+        }
 
         public LevelDifferenceInfo LevelDifference { get; private set; }
         
@@ -117,13 +257,28 @@ namespace FFXIVCraftingSim
                 _CraftingActionsLength = value;
                 if (value > MaxActions)
                     Debugger.Break();
+                PropertyChanged(this, new PropertyChangedEventArgs("CraftingActionsLength"));
+                PropertyChanged(this, new PropertyChangedEventArgs("CraftingActionsTime"));
             }
         }
+
+        public int CraftingActionsTime
+        {
+            get
+            {
+                int time = 0;
+                for (int i = 0; i < CraftingActionsLength; i++)
+                    time += CraftingActions[i].IsBuff ? 2 : 3;
+                return time;
+            }
+        }
+
 
         public ScoreDelegate ScoreFunction { get; set; }
 
         public event Action<CraftingSim> FinishedExecution = delegate { };
         public event Action<CraftingSim, int> FinishedStep = delegate { };
+        public event PropertyChangedEventHandler PropertyChanged = delegate { };
 
         public CraftingSim()
         {
@@ -168,42 +323,83 @@ namespace FFXIVCraftingSim
 
             for (int i = 0; i < MaxActions; i++)
                 sim.StepSettings[i] = StepSettings[i].Clone();
-
-            sim.SetRecipe(CurrentRecipe);
+;
             if (copyActions)
             {
                 sim.RemoveActions();
-                sim.AddActions(GetCraftingActions());
+                sim.AddActions(false, GetCraftingActions());
+
+                sim.Step = Step;
+                sim.CurrentDurability = CurrentDurability;
+                sim.CurrentProgress = CurrentProgress;
+                sim.CurrentQuality = CurrentQuality;
+                sim.CurrentCP = CurrentCP;
+
+                sim.InnerQuietBuff = InnerQuietBuff?.Clone() as InnerQuietBuff;
+                if (sim.InnerQuietBuff != null) sim.CraftingBuffs.Add(sim.InnerQuietBuff);
+
+                sim.WasteNotBuff = WasteNotBuff?.Clone() as WasteNotBuff;
+                if (sim.WasteNotBuff != null) sim.CraftingBuffs.Add(sim.WasteNotBuff);
+
+                sim.VenerationBuff = VenerationBuff?.Clone() as VenerationBuff;
+                if (sim.VenerationBuff != null) sim.CraftingBuffs.Add(sim.VenerationBuff);
+
+                sim.GreatStridesBuff = GreatStridesBuff?.Clone() as GreatStridesBuff;
+                if (sim.GreatStridesBuff != null) sim.CraftingBuffs.Add(sim.GreatStridesBuff);
+
+                sim.InnovationBuff = InnovationBuff?.Clone() as InnovationBuff;
+                if (sim.InnovationBuff != null) sim.CraftingBuffs.Add(sim.InnovationBuff);
+
+                sim.MuscleMemoryBuff = MuscleMemoryBuff?.Clone() as MuscleMemoryBuff;
+                if (sim.MuscleMemoryBuff != null) sim.CraftingBuffs.Add(sim.MuscleMemoryBuff);
+
+                sim.ManipulationBuff = ManipulationBuff?.Clone() as ManipulationBuff;
+                if (sim.ManipulationBuff != null) sim.CraftingBuffs.Add(sim.ManipulationBuff);
+
+                sim.ObserveBuff = ObserveBuff?.Clone() as ObserveBuff;
+                if (sim.ObserveBuff != null) sim.CraftingBuffs.Add(sim.ObserveBuff);
+
+                sim.NameOfTheElementsBuff = NameOfTheElementsBuff?.Clone() as NameOfTheElementsBuff;
+
+                sim.NameOfTheElementsUsed = NameOfTheElementsUsed;
             }
         }
 
-        public void AddActions(IEnumerable<CraftingAction> actions)
+        public void AddActions(bool execute, IEnumerable < CraftingAction> actions)
         {
-            AddActions(actions.ToArray());
+            AddActions(execute, actions.ToArray());
         }
 
-        public void AddActions(params CraftingAction[] actions)
+        public void AddActions(bool execute = true, params CraftingAction[] actions)
         {
             if (CraftingActionsLength >= MaxActions)
                 return;
             for (int i = 0; i < actions.Length; i++)
-                CraftingActions[CraftingActionsLength++] = actions[i];
+            {
+                if (actions[i].Level <= Level)
+                {
+                    CraftingActions[CraftingActionsLength] = actions[i];
+                    CraftingActionsLength++;
+                }
+            }
             if (CraftingActionsLength > MaxActions)
                 Debugger.Break();
-            ExecuteActions();
+            if (execute)
+                ExecuteActions();
         }
 
         public void RemoveActionAt(int index)
         {
             if (index >= CraftingActionsLength || index < 0)
                 throw new IndexOutOfRangeException();
-            CraftingActionsLength--;
-            for (int i = index; i < CraftingActionsLength; i++)
+            
+            for (int i = index; i < CraftingActionsLength - 1; i++)
             {
                 CraftingActions[i] = CraftingActions[i + 1];
             }
-            CraftingActions[CraftingActionsLength] = null;
-
+            
+            CraftingActions[CraftingActionsLength - 1] = null;
+            CraftingActionsLength--;
             ExecuteActions();
         }
 
@@ -234,16 +430,16 @@ namespace FFXIVCraftingSim
 
         public void SetRecipe(RecipeInfo recipe)
         {
+            if (CurrentRecipe == recipe)
+                return;
             CurrentRecipe = recipe;
             LevelDifference = G.GetCraftingLevelDifference(ActualLevel - recipe.Level);
             ExecuteActions();
         }
 
-        public void ExecuteActions()
+
+        public void ExecuteActions(Dictionary<ExtendedArray<ushort>, CraftingSim> states = null)
         {
-            if (CurrentRecipe == null)
-                return;
-            CurrentDurability = CurrentRecipe.Durability;
             CurrentCP = MaxCP;
             CurrentProgress = 0;
             CurrentQuality = 0;
@@ -261,6 +457,33 @@ namespace FFXIVCraftingSim
             NameOfTheElementsBuff = null;
             NameOfTheElementsUsed = false;
 
+            if (CurrentRecipe == null)
+                return;
+
+            //if (states == null)
+            //    states = G.CraftingStates;
+
+            CurrentDurability = CurrentRecipe.Durability;
+
+            if (CraftingActionsLength == 0)
+            {
+                //FinishedStep(this, 0);
+                FinishedExecution(this);
+                return;
+            }
+
+            ExtendedArray<ushort> actions = null;
+            if (states != null)
+            {
+                actions = GetCraftingActions().Select(x => x.Id).ToArray();
+                if (states.ContainsKey(actions))
+                {
+                    states[actions].CopyTo(this, true);
+                    FinishedExecution(this);
+                    return;
+                }
+            }
+
             for (int i = 0; i < CraftingActionsLength; i++)
             {
                 CraftingAction action = CraftingActions[i];
@@ -273,6 +496,13 @@ namespace FFXIVCraftingSim
                     action.CheckInner(this) != CraftingActionResult.Success)
                 {
                     RemoveRedundantActions();
+                    if (states != null)
+                    {
+                        actions = GetCraftingActions().Select(x => x.Id).ToArray();
+                        CraftingSim sim = Clone();
+                        CopyTo(sim, true);
+                        states[actions] = sim;
+                    }
                     FinishedExecution(this);
                     return;
                 }
@@ -305,6 +535,13 @@ namespace FFXIVCraftingSim
                 FinishedStep(this, i);
             }
 
+            if (states != null)
+            {
+                actions = GetCraftingActions().Select(x => x.Id).ToArray();
+                CraftingSim sim = Clone();
+                CopyTo(sim, true);
+                states[actions] = sim;
+            }
             FinishedExecution(this);
         }
 

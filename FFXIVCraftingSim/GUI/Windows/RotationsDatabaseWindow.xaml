@@ -7,18 +7,18 @@
         mc:Ignorable="d"
         Title="Select Rotation" Height="450" Width="1025" WindowStyle="ToolWindow" >
     <Grid>
-        <DataGrid Name="DataGridRotations" AutoGenerateColumns="False" IsReadOnly="True" MouseDoubleClick="DataGridRotations_MouseDoubleClick" SelectionMode="Single" RowDetailsVisibilityMode="Visible" FontFamily="Consolas">
+        <DataGrid Name="DataGridRotations" AutoGenerateColumns="False" IsReadOnly="True" MouseDoubleClick="DataGridRotations_MouseDoubleClick" SelectionMode="Single" RowDetailsVisibilityMode="Visible" FontFamily="Consolas" Margin="0,18,0,0">
             <DataGrid.ContextMenu>
                 <ContextMenu>
                     <MenuItem Header="Remove" Click="ContextMenuItemRemoveClicked" />
                 </ContextMenu>
             </DataGrid.ContextMenu>
             <DataGrid.Columns>
-                <DataGridTextColumn Width="120" Header="Max Craftsmanship" Binding="{Binding RotationInfo.MaxCraftsmanship}" />
-                <DataGridTextColumn Width="120" Header="Min Craftsmanship" Binding="{Binding RotationInfo.MinCraftsmanship}" />
-                <DataGridTextColumn Width="80" Header="Min Control" Binding="{Binding RotationInfo.MinControl}" />
+                <DataGridTextColumn Width="70" Header="Min Level" Binding="{Binding RotationInfo.MinLevel}" />
+                <DataGridTextColumn Width="140" Header="Max Craftsmanship" Binding="{Binding RotationInfo.MaxCraftsmanship}" />
+                <DataGridTextColumn Width="140" Header="Min Craftsmanship" Binding="{Binding RotationInfo.MinCraftsmanship}" />
+                <DataGridTextColumn Width="90" Header="Min Control" Binding="{Binding RotationInfo.MinControl}" />
                 <DataGridTextColumn Width="50" Header="CP" Binding="{Binding RotationInfo.CP}" />
-                <DataGridTextColumn Width="130" Header="Score" Binding="{Binding RotationInfo.Score}" />
                 <DataGridTextColumn Width ="Auto" Header="Rotation Time" Binding="{Binding RotationInfo.RotationTime}" />
             </DataGrid.Columns>
             <DataGrid.RowDetailsTemplate>
@@ -47,5 +47,6 @@
                 </DataTemplate>
             </DataGrid.RowDetailsTemplate>
         </DataGrid>
+        <Button Content="Filter For Current Stats" HorizontalAlignment="Left" VerticalAlignment="Top" Width="200" FontFamily="Consolas" Click="FilterForCurrentStatsClicked"/>
     </Grid>
 </Window>

@@ -22,7 +22,10 @@ namespace FFXIVCraftingSim.Actions.Buffs
             sim.MuscleMemoryBuff = null;
             base.Remove(sim);
         }
-    }
 
-    
+        public override CraftingBuff Clone()
+        {
+            return new MuscleMemoryBuff { Stack = Stack, NeedsRemove = NeedsRemove };
+        }
+    }
 }

@@ -62,16 +62,11 @@ namespace FFXIVCraftingSim.GUI
             }
         }
 
-        private PropertyChangedEventArgs ProgressIncreaseArgs, QualityIncreaseArgs;
-
         public CraftingActionContainer(BitmapSource source, CraftingSim sim, CraftingAction action)
         {
             Source = source;
             Sim = sim;
             Action = action;
-
-            ProgressIncreaseArgs = new PropertyChangedEventArgs("ProgressIncrease");
-            QualityIncreaseArgs = new PropertyChangedEventArgs("QualityIncrease");
         }
 
         public void Dispose()
@@ -84,8 +79,8 @@ namespace FFXIVCraftingSim.GUI
 
         public void Update()
         {
-            PropertyChanged(this, ProgressIncreaseArgs);
-            PropertyChanged(this, QualityIncreaseArgs);
+            PropertyChanged(this, new PropertyChangedEventArgs("ProgressIncrease"));
+            PropertyChanged(this, new PropertyChangedEventArgs("QualityIncrease"));
         }
     }
 }

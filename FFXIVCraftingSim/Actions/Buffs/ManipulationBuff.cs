@@ -28,6 +28,11 @@ namespace FFXIVCraftingSim.Actions.Buffs
             sim.ManipulationBuff = null;
             base.Remove(sim);
         }
+
+        public override CraftingBuff Clone()
+        {
+            return new ManipulationBuff { Stack = Stack, NeedsRemove = NeedsRemove };
+        }
     }
 
     

@@ -22,6 +22,11 @@ namespace FFXIVCraftingSim.Actions.Buffs
             sim.WasteNotBuff = null;
             base.Remove(sim);
         }
+
+        public override CraftingBuff Clone()
+        {
+            return new WasteNotBuff { Stack = Stack, NeedsRemove = NeedsRemove };
+        }
     }
 
     

@@ -22,6 +22,11 @@ namespace FFXIVCraftingSim.Actions.Buffs
             sim.NameOfTheElementsBuff = null;
             base.Remove(sim);
         }
+
+        public override CraftingBuff Clone()
+        {
+            return new NameOfTheElementsBuff { Stack = Stack, NeedsRemove = NeedsRemove };
+        }
     }
 
     

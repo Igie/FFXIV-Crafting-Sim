@@ -21,8 +21,10 @@
         <DataGrid x:Name="DataGridRecipes" Margin="0,50,0,0" IsReadOnly="True" MouseDoubleClick="MouseDoubleClickRecipe" AutoGenerateColumns="False" SelectionMode="Single">
             <DataGrid.Columns>
                 <DataGridTextColumn Header="Id" Width="50" Binding="{Binding Id}"/>
-                <DataGridTextColumn Header="Level" Width="80" Binding="{Binding Level}"/>
-                <DataGridTextColumn Header="Name" Width="200" Binding="{Binding Name}"/>
+                <DataGridTextColumn Header="Level" Width="50" Binding="{Binding Level}"/>
+                <DataGridTextColumn Header="Rotations Count" Width="130" Binding="{Binding RotationsCount}"/>
+                <DataGridTextColumn Header="Name" Width="300" Binding="{Binding Name}"/>
+                
             </DataGrid.Columns>
         </DataGrid>
     </Grid>

@@ -32,30 +32,33 @@ namespace FFXIVCraftingSim.Solving
 
         public bool CopyBestRotationToPopulations { get; set; }
 
-        public GASolver(CraftingSim sim, ushort[] availableActions)
+        public GASolver(CraftingSim sim)
         {
             Sim = sim;
-            AvailableActions = availableActions;
            
 
             CopyBestRotationToPopulations = false;
             LeaveStartingActions = false;
 
-            if (Populations == null)
-            {
-                Populations = new Population[8];
-                for (int i = 0; i < 8; i++)
-                    Populations[i] = new Population(i, Sim.Clone(), 550, CraftingSim.MaxActions, AvailableActions);
-            }
+           
         }
 
 
         public void Start(int taskCount = 8, int chromosomeCount = 550, bool leaveStartingActions = false)
         {
+            AvailableActions = CraftingAction.CraftingActions.Values.Where(x => x.Level <= Sim.Level).Select(y => y.Id).ToArray();
+            if (Populations == null)
+            {
+                Populations = new Population[taskCount];
+                for (int i = 0; i < taskCount; i++)
+                    Populations[i] = new Population(i, Sim.Clone(), chromosomeCount, CraftingSim.MaxActions, AvailableActions);
+            }
+            
+
             Continue = true;
             NeedsUpdate = false;
             Iterations = 0;
-
+            G.CraftingStates.Clear();
             TaskCount = taskCount;
 
             Tasks = new Task[TaskCount];
@@ -66,6 +69,7 @@ namespace FFXIVCraftingSim.Solving
                 for (int i = 0; i < TaskCount; i++)
                     Populations[i] = new Population(i, Sim.Clone(), chromosomeCount, CraftingSim.MaxActions, AvailableActions);
             }
+
 
             if (Populations.Length != TaskCount)
             {
@@ -85,6 +89,9 @@ namespace FFXIVCraftingSim.Solving
                     Populations[i].ChangeSize(chromosomeCount);
                 }
             }
+
+            for (int i = 0; i < TaskCount; i++)
+                Populations[i].ChangeAvailableValues(AvailableActions);
 
             LeaveStartingActions = leaveStartingActions;
             BestChromosome = new Chromosome(Sim.Clone(), AvailableActions,CraftingSim.MaxActions, Sim.GetCraftingActions().Select(x => (ushort)x.Id).ToArray());
@@ -131,7 +138,7 @@ namespace FFXIVCraftingSim.Solving
                 if (NeedsUpdate)
                 {
                     Sim.RemoveActions();
-                    Sim.AddActions(BestChromosome.Values.Where(y => y > 0).Select(x => CraftingAction.CraftingActions[x]));
+                    Sim.AddActions(true, BestChromosome.Values.Where(y => y > 0).Select(x => CraftingAction.CraftingActions[x]));
                     NeedsUpdate = false;
                    
                     if (CopyBestRotationToPopulations)
