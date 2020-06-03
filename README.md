@@ -15,9 +15,7 @@ There are still many bugs and I am working on this project everyday. Do help me 
 
 Known bugs:
 
-Current rotation images disappear when changing crafter stats.
-
-Sometimes when searching for rotation with already defined rotation, the defined rotation disappears.
+So far none.
 
 Features:
 
