@@ -145,6 +145,10 @@
     <Compile Include="GUI\CustomControls\ExtendedProgressBar.xaml.cs">
       <DependentUpon>ExtendedProgressBar.xaml</DependentUpon>
     </Compile>
+    <Compile Include="GUI\ImageAndActionContainer.cs" />
+    <Compile Include="GUI\Windows\ConditionalSolvingWindow.xaml.cs">
+      <DependentUpon>ConditionalSolvingWindow.xaml</DependentUpon>
+    </Compile>
     <Compile Include="GUI\Windows\FoodSelectionWindow.xaml.cs">
       <DependentUpon>FoodSelectionWindow.xaml</DependentUpon>
     </Compile>
@@ -164,6 +168,7 @@
       <DependentUpon>RotationsDatabaseWindow.xaml</DependentUpon>
     </Compile>
     <Compile Include="Solving\ArrayCounter.cs" />
+    <Compile Include="Solving\Conditional\CraftingCondition.cs" />
     <Compile Include="Solving\CraftingActionSequence.cs" />
     <Compile Include="Solving\GeneticAlgorithm\Chromosome.cs" />
     <Compile Include="Solving\GeneticAlgorithm\GeneticUtils.cs" />
@@ -181,6 +186,10 @@
     <Compile Include="Types\RecipeSolutionInfo.cs" />
     <Compile Include="Solving\RotationInfo.cs" />
     <Page Include="GUI\CustomControls\ExtendedProgressBar.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="GUI\Windows\ConditionalSolvingWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

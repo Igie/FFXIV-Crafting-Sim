@@ -47,7 +47,7 @@ namespace FFXIVCraftingSim.GUI.Windows
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
-           
+
             DataGridRecipes.ItemsSource = G.Recipes;
             CollectionViewSource.GetDefaultView(DataGridRecipes.ItemsSource).Filter = UserFilter;
         }
@@ -66,11 +66,10 @@ namespace FFXIVCraftingSim.GUI.Windows
             if (!e1)
             {
                 string s = info.SearchString.ToLower();
-                foreach (var arg in args)
-                {
-                    if (s.Contains(arg))
-                        return true;
-                }
+                bool contains = args.All(x => s.Contains(x));
+                if (contains)
+                    return true;
+
             }
             if (!e2)
             {

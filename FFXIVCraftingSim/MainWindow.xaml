@@ -46,7 +46,7 @@
     <Grid>
         <Menu Height="23" VerticalAlignment="Top">
             <MenuItem Width="100" Header="Rotations...">
-                <MenuItem Header="Open Rotation Manager" Click="MenuItemOpenRotationManagerClicked" />
+                <MenuItem Header="Open Conditional Solving Interface" Click="MenuItemOpenConditionalSolvingInterface" />
             </MenuItem>
             <MenuItem Header="Reload Database" Width="100" Height="23" Click="ReloadDatabaseClicked" />
 
@@ -176,7 +176,8 @@
                     </TextBlock.Text>
                 </TextBlock>
                 <Separator Height="2" Margin="0,99,0,0" VerticalAlignment="Top"/>
-                <GroupBox  Margin="0,124,0,432">
+                <GroupBox  Margin="0,124,0,305">
+                    
                     <GroupBox.Header>
                         <TextBlock>
                             <TextBlock.Text>
@@ -187,33 +188,37 @@
                             </TextBlock.Text>
                         </TextBlock>
                     </GroupBox.Header>
-                    <ListView x:Name="ListViewActions" Height="83" Margin="0,0,0,0" ItemContainerStyle="{StaticResource ListViewItemAvailableAction}" VerticalAlignment="Top" FontFamily="Consolas" ScrollViewer.VerticalScrollBarVisibility="Disabled" HorizontalContentAlignment="Left" VerticalContentAlignment="Top" MouseLeftButtonUp="ListViewActions_MouseLeftButtonUp" Background="#FFC7C7C7" >
-                    <ListView.ContextMenu>
-                        <ContextMenu>
-                            <MenuItem Header="Copy Macro" Click="CopyMacroClicked"/>
-                            <MenuItem Header="Clear All" Click="ClearAllClicked"/>
-                        </ContextMenu>
-                    </ListView.ContextMenu>
-                    <ListView.ItemsPanel>
-                        <ItemsPanelTemplate>
-                            <StackPanel Orientation="Horizontal"/>
-                        </ItemsPanelTemplate>
-                    </ListView.ItemsPanel>
-
-                    <ListView.ItemTemplate>
-                        <DataTemplate DataType="CraftingActionContainer">
-                            <Grid Height="70"  ToolTip="{Binding Action.Name}">
-                                <Border BorderBrush="#FF494949" Background="#FFD8D8D8" BorderThickness="1">
-                                    <Image Width="32" Height="30" Source ="{Binding Source}" Margin="0,25,0,0" VerticalAlignment="Top" />
-                                </Border>
-                                <TextBlock Height="26" Margin="0" Padding="1,0" VerticalAlignment="Top" Text="{Binding Path=IncreaseString}" FontSize="11" FontFamily="Consolas" LineHeight="0" />
-                                <TextBlock Height="15" Margin="0" Padding="5,0" Text="{Binding Path=CPCost}" VerticalAlignment="Bottom" />
-                            </Grid>
-                        </DataTemplate>
-                    </ListView.ItemTemplate>
-                </ListView>
+                    <Grid>
+                        <ListView x:Name="ListViewActions" Height="83" Margin="0,0,0,0" ItemContainerStyle="{StaticResource ListViewItemAvailableAction}" VerticalAlignment="Top" FontFamily="Consolas" ScrollViewer.VerticalScrollBarVisibility="Disabled" HorizontalContentAlignment="Left" VerticalContentAlignment="Top" MouseLeftButtonUp="ListViewActions_MouseLeftButtonUp" Background="#FFC7C7C7" >
+                            <ListView.ContextMenu>
+                                <ContextMenu>
+                                    <MenuItem Header="Copy Macro" Click="CopyMacroClicked"/>
+                                    <MenuItem Header="Clear All" Click="ClearAllClicked"/>
+                                </ContextMenu>
+                            </ListView.ContextMenu>
+                            <ListView.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <StackPanel Orientation="Horizontal"/>
+                                </ItemsPanelTemplate>
+                            </ListView.ItemsPanel>
+                            <ListView.ItemTemplate>
+                                <DataTemplate DataType="CraftingActionContainer">
+                                    <Grid Height="70"  ToolTip="{Binding Action.Name}">
+                                        <Border BorderBrush="#FF494949" Background="#FFD8D8D8" BorderThickness="1">
+                                            <Image Width="32" Height="30" Source ="{Binding Source}" Margin="0,25,0,0" VerticalAlignment="Top" />
+                                        </Border>
+                                        <TextBlock Height="26" Margin="0" Padding="1,0" VerticalAlignment="Top" Text="{Binding Path=IncreaseString}" FontSize="11" FontFamily="Consolas" LineHeight="0" />
+                                        <TextBlock Height="15" Margin="0" Padding="5,0" Text="{Binding Path=CPCost}" VerticalAlignment="Bottom" />
+                                    </Grid>
+                                </DataTemplate>
+                            </ListView.ItemTemplate>
+                        </ListView>
+                        <ListView x:Name="FinisherRotations" Margin="0,83,0,0">
+                            
+                        </ListView>
+                    </Grid>
                 </GroupBox>
-                <GroupBox Header="Available Actions" Margin="0,363,0,0">
+                <GroupBox Header="Available Actions" Height="300" VerticalAlignment="Bottom">
                     <StackPanel Orientation="Vertical">
                         <HeaderedContentControl Header="Increases Progress:">
                             <ListView x:Name="ListViewAvailableIncreasesProgress" ItemContainerStyle="{StaticResource ListViewItemAvailableAction}"  MouseLeftButtonUp="ListViewAvailable_MouseLeftButtonUp" ScrollViewer.HorizontalScrollBarVisibility="Disabled"  HorizontalContentAlignment="Left" VerticalContentAlignment="Top">

@@ -1,0 +1,188 @@
+﻿<Window x:Class="FFXIVCraftingSim.GUI.Windows.ConditionalSolvingWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:FFXIVCraftingSim.GUI.Windows"
+        mc:Ignorable="d"
+        Title="Conditional Solving Interface" Height="450" Width="1200" FontFamily="Consolas">
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="202*"/>
+            <ColumnDefinition Width="275*"/>
+        </Grid.ColumnDefinitions>
+        <ListView x:Name="ListViewConditions" ScrollViewer.VerticalScrollBarVisibility="Visible" SelectionMode="Single" 
+                  SelectedValue="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:ConditionalSolvingWindow}}, Path=SelectedCondition, UpdateSourceTrigger=PropertyChanged}"
+                  ItemsSource="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:ConditionalSolvingWindow}}, Path=CraftingConditions}">
+
+            <ListView.View>
+                <GridView>
+                    <GridViewColumn Header="Action" Width="250">
+                        <GridViewColumn.CellTemplate>
+                            <DataTemplate>
+                                <StackPanel Width="250" Height="20" Orientation="Horizontal" VerticalAlignment="Center">
+                                    <StackPanel.Children>
+                                        <Image Source="{Binding ActionContainer.BitmapSource}"/>
+                                        <Button Content="Up" Width="35" Click="MoveActionUp" Tag="{Binding}" ></Button>
+                                        <Button Content="Down" Width="35" Click="MoveActionDown" Tag="{Binding}"></Button>
+                                        <Button Content="X" Width="35" Click="RemoveAction" Tag="{Binding}"></Button>
+                                        <TextBlock Text="{Binding ActionContainer.CraftingAction.Name}" Padding="4,3" />
+                                        
+                                    </StackPanel.Children>
+                                </StackPanel>
+                            </DataTemplate>
+                        </GridViewColumn.CellTemplate>
+                    </GridViewColumn>
+                    <GridViewColumn Header="Conditions" Width="170">
+                        <GridViewColumn.CellTemplate>
+                            <DataTemplate>
+                                <Grid Height="Auto">
+                                    <TextBlock Text="{Binding ConditionsText}" />
+                                </Grid>
+                            </DataTemplate>
+                        </GridViewColumn.CellTemplate>
+                    </GridViewColumn>
+                </GridView>
+            </ListView.View>
+            <ListView.ContextMenu>
+                <ContextMenu>
+                    <MenuItem Header="Remove" Click="RemoveClicked" />
+                </ContextMenu>
+            </ListView.ContextMenu>
+        </ListView>
+        <CheckBox x:Name="CheckBoxSimulateOnChanges" Content="Simulate On Changes" IsChecked="True" VerticalAlignment="Top" Grid.Column="1" Margin="5,0,0,0" HorizontalAlignment="Left" Width="151" Height="24" VerticalContentAlignment="Center"/>
+        <GroupBox Header="New Action" Height="79" Margin="0,24,0,0" VerticalAlignment="Top" Grid.Column="1">
+            <Grid Margin="0,0,0,0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="35*"/>
+                    <ColumnDefinition Width="45*"/>
+                </Grid.ColumnDefinitions>
+                <Label  Content="Action:" VerticalAlignment="Top" Height="25" Margin="0,10,0,0"/>
+                <ComboBox x:Name="ComboBoxNewAction" Margin="0,10,0,0" VerticalAlignment="Top" Height="25" Grid.Column="1" ItemsSource="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:ConditionalSolvingWindow}}, Path=AllActions}" IsReadOnly="True" SelectedIndex="0">
+                    <ComboBox.ItemTemplate>
+                        <DataTemplate>
+                            <StackPanel Width="200" Height="20" Orientation="Horizontal" VerticalAlignment="Center">
+                                <StackPanel.Children>
+                                    <Image Source="{Binding BitmapSource}"/>
+                                    <TextBlock Text="{Binding CraftingAction.Name}" Padding="4,3" />
+                                </StackPanel.Children>
+                            </StackPanel>
+                        </DataTemplate>
+                    </ComboBox.ItemTemplate>
+                </ComboBox>
+
+                <Button Content="Add New Action" Margin="109,40,0,0" VerticalAlignment="Top" Grid.Column="1" Click="AddClicked"/>
+            </Grid>
+        </GroupBox>
+        <GroupBox Header="Selected Action" Margin="0,108,0,0" Grid.Column="1">
+            <Grid>
+                <StackPanel Height="20" Orientation="Horizontal" VerticalAlignment="Top" Margin="10,10,10,0">
+                    <StackPanel.Children>
+                        <Image DataContext="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:ConditionalSolvingWindow}}}" Source="{Binding Path=SelectedCondition.ActionContainer.BitmapSource}"/>
+                        <TextBlock DataContext="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:ConditionalSolvingWindow}}}" Text="{Binding Path=SelectedCondition.ActionContainer.CraftingAction.Name}" Padding="4,3" />
+                    </StackPanel.Children>
+                </StackPanel>
+                <ListView Margin="0,35,0,23" 
+                          ScrollViewer.HorizontalScrollBarVisibility="Auto" 
+                          ScrollViewer.VerticalScrollBarVisibility="Visible" 
+                          ItemsSource="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:ConditionalSolvingWindow}}, Path=SelectedCondition.Conditions}" 
+                          FontSize="10">
+                    <ListView.View>
+                        <GridView>
+                            <GridView.Columns>
+                                <GridViewColumn Width="200" Header="Property">
+                                    <GridViewColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <StackPanel Orientation="Horizontal">
+                                                <Button Content="X" Width="20" Tag="{Binding}" Click="RemoveActionCondition" />
+                                                <ComboBox Margin="0,0,0,0" MinWidth="160" Width="Auto" VerticalAlignment="Top" HorizontalAlignment="Stretch" Height="23" 
+                                                      
+                                                      ItemsSource="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:ConditionalSolvingWindow}}, Path=AllProperties}" IsReadOnly="True"
+                                                      SelectedValue="{Binding PropertyInfo}">
+                                                <ComboBox.ItemTemplate>
+                                                    <DataTemplate>
+                                                        <TextBlock Padding="0,2" Text="{Binding}" />
+                                                    </DataTemplate>
+                                                </ComboBox.ItemTemplate>
+                                            </ComboBox>
+                                            </StackPanel>
+
+                                        </DataTemplate>
+                                    </GridViewColumn.CellTemplate>
+                                </GridViewColumn>
+                                <GridViewColumn Width="125" Header="Condition">
+                                    <GridViewColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <ComboBox Margin="0,0,0,0" MinWidth="110" VerticalAlignment="Top" HorizontalAlignment="Stretch" Height="23" 
+                                                      ItemsSource="{Binding PossibleConditions}" IsReadOnly="True"
+                                                      SelectedValue="{Binding ConditionInfo}">
+                                                <ComboBox.ItemTemplate>
+                                                    <DataTemplate>
+                                                        <TextBlock Padding="0,2" Text="{Binding}" />
+                                                    </DataTemplate>
+                                                </ComboBox.ItemTemplate>
+                                            </ComboBox>
+                                        </DataTemplate>
+                                    </GridViewColumn.CellTemplate>
+                                </GridViewColumn>
+                                <GridViewColumn Width="135" Header="Value">
+                                    <GridViewColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <ContentControl DataContext="{Binding Path=., PresentationTraceSources.TraceLevel=High}">
+                                                <ContentControl.Style>
+                                                    <Style TargetType="{x:Type ContentControl}">
+
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding PropertyTypeInfo}" Value="Int">
+                                                                <Setter Property="ContentTemplate">
+                                                                    <Setter.Value>
+                                                                        <DataTemplate>
+                                                                            <TextBox MinWidth="120" Height="23" VerticalContentAlignment="Center"
+                                                                                DataContext="{Binding Path=DataContext, RelativeSource={RelativeSource AncestorType={x:Type ContentControl}}}" Text="{Binding Path=Value, UpdateSourceTrigger=PropertyChanged}" />
+                                                                        </DataTemplate>
+                                                                    </Setter.Value>
+                                                                </Setter>
+                                                            </DataTrigger>
+
+                                                            <DataTrigger Binding="{Binding PropertyTypeInfo}" Value="Bool">
+                                                                <Setter Property="ContentTemplate">
+                                                                    <Setter.Value>
+                                                                        <DataTemplate>
+                                                                            <CheckBox DataContext="{Binding Path=DataContext, RelativeSource={RelativeSource AncestorType={x:Type ContentControl}}}"
+                                                                                MinWidth="120" Content="Is Selected" VerticalContentAlignment="Center" Width="Auto" Margin="0,5,0,0" VerticalAlignment="Center" HorizontalAlignment="Stretch" Height="23" IsChecked="{Binding Value}" />
+                                                                        </DataTemplate>
+                                                                    </Setter.Value>
+                                                                </Setter>
+                                                            </DataTrigger>
+                                                            <DataTrigger Binding="{Binding PropertyTypeInfo}" Value="RecipeConditionEnum">
+                                                                <Setter Property="ContentTemplate">
+                                                                    <Setter.Value>
+                                                                        <DataTemplate>
+                                                                            <ComboBox DataContext="{Binding Path=DataContext, RelativeSource={RelativeSource AncestorType={x:Type ContentControl}}}"
+                                                                                MinWidth="120" Width="Auto" VerticalAlignment="Top" HorizontalAlignment="Stretch" Height="23" 
+                                                                            ItemsSource="{Binding AllRecipeConditions}" SelectedIndex="0" SelectedValue="{Binding Value}">
+
+                                                                            </ComboBox>
+                                                                        </DataTemplate>
+                                                                    </Setter.Value>
+
+                                                                </Setter>
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </ContentControl.Style>
+                                            </ContentControl>
+                                        </DataTemplate>
+                                    </GridViewColumn.CellTemplate>
+                                </GridViewColumn>
+                            </GridView.Columns>
+                        </GridView>
+                    </ListView.View>
+                </ListView>
+                <Button Content="Add New Condition" VerticalAlignment="Bottom" Click="AddNewProperty" HorizontalAlignment="Right" Width="200"/>
+            </Grid>
+
+        </GroupBox>
+        <Button Content="Shuffle Recipe Conditions" Grid.Column="1" HorizontalAlignment="Left" Margin="156,0,0,0" VerticalAlignment="Top" Width="181" Height="24" Click="ShuffleSimRecipeConditionsClicked"/>
+    </Grid>
+</Window>

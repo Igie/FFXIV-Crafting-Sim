@@ -42,6 +42,7 @@ namespace FFXIVCraftingSim
 
         public static void Init(MainWindow window)
         {
+            DataStream s = new DataStream();
             MainWindow = window;
             Game = new ARealmReversed(@"C:\Program Files (x86)\SquareEnix\FINAL FANTASY XIV - A Realm Reborn", SaintCoinach.Ex.Language.English);
 
@@ -86,28 +87,28 @@ namespace FFXIVCraftingSim
             {
                 SetStatus("Reading Recipes from Recipes.db...", 0);
                 DataStream s = new DataStream(File.ReadAllBytes("Recipes.db"));
-                ushort length = s.ReadUShort();
+                int length = s.ReadS32();
                 Recipes = new List<RecipeInfo>(length);
                 SetStatus(null, 0, 0, length);
                 for (ushort i = 0; i < length; i++)
                 {
                     RecipeInfo info = new RecipeInfo
                     {
-                        Id = s.ReadInt(),
+                        Id = s.ReadS32(),
                         Name = s.ReadString(),
-                        Level = s.ReadInt(),
-                        ClassJobLevel = s.ReadInt(),
-                        ClassJob = (ClassJobInfo)s.ReadInt(),
-                        RequiredCraftsmanship = s.ReadInt(),
-                        RequiredControl = s.ReadInt(),
-                        Durability = s.ReadInt(),
-                        MaxProgress = s.ReadInt(),
-                        MaxQuality = s.ReadInt()
+                        Level = s.ReadS32(),
+                        ClassJobLevel = s.ReadS32(),
+                        ClassJob = (ClassJobInfo)s.ReadS32(),
+                        RequiredCraftsmanship = s.ReadS32(),
+                        RequiredControl = s.ReadS32(),
+                        Durability = s.ReadS32(),
+                        MaxProgress = s.ReadS32(),
+                        MaxQuality = s.ReadS32()
                     };
 
                     int c = s.ReadByte();
                     for (int j = 0; j < c; j++)
-                        info.Ingredients.Add(Items[s.ReadInt()]);
+                        info.Ingredients.Add(Items[s.ReadS32()]);
 
                     Recipes.Add(info);
 
@@ -173,23 +174,23 @@ namespace FFXIVCraftingSim
         {
             SetStatus("Writing Recipes to Recipes.db...", 0, 0, Recipes.Count);
             DataStream s = new DataStream();
-            s.WriteUShort((ushort)Recipes.Count);
+            s.WriteS32(Recipes.Count);
             for (int i = 0; i < Recipes.Count; i++)
             {
                 var value = Recipes[i];
-                s.WriteInt(value.Id);
+                s.WriteS32(value.Id);
                 s.WriteString(value.Name);
-                s.WriteInt(value.Level);
-                s.WriteInt(value.ClassJobLevel);
-                s.WriteInt((int)value.ClassJob);
-                s.WriteInt(value.RequiredCraftsmanship);
-                s.WriteInt(value.RequiredControl);
-                s.WriteInt(value.Durability);
-                s.WriteInt(value.MaxProgress);
-                s.WriteInt(value.MaxQuality);
+                s.WriteS32(value.Level);
+                s.WriteS32(value.ClassJobLevel);
+                s.WriteS32((int)value.ClassJob);
+                s.WriteS32(value.RequiredCraftsmanship);
+                s.WriteS32(value.RequiredControl);
+                s.WriteS32(value.Durability);
+                s.WriteS32(value.MaxProgress);
+                s.WriteS32(value.MaxQuality);
                 s.WriteByte((byte)value.Ingredients.Count);
                 for (int j = 0; j < value.Ingredients.Count; j++)
-                    s.WriteInt(value.Ingredients[j].Id);
+                    s.WriteS32(value.Ingredients[j].Id);
                 if (i % 100 == 0)
                     SetStatus(null, i);
             }
@@ -211,13 +212,13 @@ namespace FFXIVCraftingSim
             {
                 SetStatus("Reading Items from Items.db...", 0);
                 DataStream s = new DataStream(File.ReadAllBytes("Items.db"));
-                ushort length = s.ReadUShort();
+                int length = s.ReadS32();
                 SetStatus(null, 0, 0, length);
                 for (ushort i = 0; i < length; i++)
                 {
                     ItemInfo info = new ItemInfo
                     {
-                        Id = s.ReadInt(),
+                        Id = s.ReadS32(),
                         Name = s.ReadString(),
                     };
 
@@ -230,10 +231,10 @@ namespace FFXIVCraftingSim
                         for (int j = 0; j < f.StatTypes.Length; j++)
                         {
                             f.StatTypes[j] = (StatType)s.ReadByte();
-                            f.PercentageIncrease[j] = s.ReadInt();
-                            f.MaxIncrease[j] = s.ReadInt();
-                            f.PercentageIncreaseHQ[j] = s.ReadInt();
-                            f.MaxIncreaseHQ[j] = s.ReadInt();
+                            f.PercentageIncrease[j] = s.ReadS32();
+                            f.MaxIncrease[j] = s.ReadS32();
+                            f.PercentageIncreaseHQ[j] = s.ReadS32();
+                            f.MaxIncreaseHQ[j] = s.ReadS32();
                         }
 
                         info.FoodInfo = f;
@@ -325,11 +326,11 @@ namespace FFXIVCraftingSim
             SetStatus("Writing Items to Items.db...", 0, 0, Items.Count);
             DataStream s = new DataStream();
             var values = Items.Values.ToArray();
-            s.WriteUShort((ushort)values.Length);
+            s.WriteS32((ushort)values.Length);
             for (int i = 0; i < Items.Count; i++)
             {
                 var value = values[i];
-                s.WriteInt(value.Id);
+                s.WriteS32(value.Id);
                 s.WriteString(value.Name);
 
                 s.WriteByte(value.FoodInfo == null ? (byte)0 : (byte)1);
@@ -342,10 +343,10 @@ namespace FFXIVCraftingSim
                     for (int j = 0; j < f.StatTypes.Length; j++)
                     {
                         s.WriteByte((byte)f.StatTypes[j]);
-                        s.WriteInt(f.PercentageIncrease[j]);
-                        s.WriteInt(f.MaxIncrease[j]);
-                        s.WriteInt(f.PercentageIncreaseHQ[j]);
-                        s.WriteInt(f.MaxIncreaseHQ[j]);
+                        s.WriteS32(f.PercentageIncrease[j]);
+                        s.WriteS32(f.MaxIncrease[j]);
+                        s.WriteS32(f.PercentageIncreaseHQ[j]);
+                        s.WriteS32(f.MaxIncreaseHQ[j]);
                     }
                 }
 
@@ -369,14 +370,14 @@ namespace FFXIVCraftingSim
             {
                 SetStatus("Reading Actions from Actions.db...", 0);
                 DataStream s = new DataStream(File.ReadAllBytes("Actions.db"));
-                ushort length = s.ReadUShort();
+                int length = s.ReadS32();
                 SetStatus(null, 0, 0, length);
-                for (ushort i = 0; i < length; i++)
+                for (int i = 0; i < length; i++)
                 {
                     ActionInfo info = new ActionInfo
                     {
                         Name = s.ReadString(),
-                        Level = s.ReadInt()
+                        Level = s.ReadS32()
                     };
 
                     info.Images[ClassJobInfo.GSM] = s.ReadBitmapSource();
@@ -452,12 +453,12 @@ namespace FFXIVCraftingSim
             SetStatus("Writing Actions to Actions.db...", 0, 0, Actions.Count);
             DataStream s = new DataStream();
             var values = Actions.Values.ToArray();
-            s.WriteUShort((ushort)values.Length);
+            s.WriteS32(values.Length);
             for (int i = 0; i < Actions.Count; i++)
             {
                 var value = values[i];
                 s.WriteString(value.Name);
-                s.WriteInt(value.Level);
+                s.WriteS32(value.Level);
 
                 s.WriteBitmapSource(value.Images[ClassJobInfo.GSM]);
                 s.WriteBitmapSource(value.Images[ClassJobInfo.CRP]);
@@ -487,16 +488,16 @@ namespace FFXIVCraftingSim
             {
                 SetStatus("Reading LevelDifferences from LevelDifferences.db...", 0);
                 DataStream s = new DataStream(File.ReadAllBytes("LevelDifferences.db"));
-                ushort length = s.ReadUShort();
+                int length = s.ReadS32();
                 LevelDifferences = new List<LevelDifferenceInfo>(length);
                 SetStatus(null, 0, 0, length);
                 for (ushort i = 0; i < length; i++)
                 {
                     LevelDifferenceInfo info = new LevelDifferenceInfo
                     {
-                        Difference = s.ReadShort(),
-                        ProgressFactor = s.ReadShort(),
-                        QualityFactor = s.ReadShort()
+                        Difference = s.ReadS32(),
+                        ProgressFactor = s.ReadS32(),
+                        QualityFactor = s.ReadS32()
                     };
                     LevelDifferences.Add(info);
                     if (i % 100 == 0)
@@ -540,13 +541,13 @@ namespace FFXIVCraftingSim
         {
             SetStatus("Writing LevelDifferences to LevelDifferences.db...", 0, 0, LevelDifferences.Count);
             DataStream s = new DataStream();
-            s.WriteUShort((ushort)LevelDifferences.Count);
+            s.WriteS32(LevelDifferences.Count);
             for (int i = 0; i < LevelDifferences.Count; i++)
             {
                 var value = LevelDifferences[i];
-                s.WriteShort(value.Difference);
-                s.WriteShort(value.ProgressFactor);
-                s.WriteShort(value.QualityFactor);
+                s.WriteS32(value.Difference);
+                s.WriteS32(value.ProgressFactor);
+                s.WriteS32(value.QualityFactor);
 
                 if (i % 100 == 0)
                     SetStatus(null, i);
@@ -567,34 +568,34 @@ namespace FFXIVCraftingSim
             {
                 SetStatus("Reading RecipeRotations from RecipeRotations.db...", 0);
                 DataStream s = new DataStream(File.ReadAllBytes("RecipeRotations.db"));
-                ushort length = s.ReadUShort();
+                int length = s.ReadS32();
                 RecipeRotations = new Dictionary<AbstractRecipeInfo, List<RecipeSolutionInfo>>(length);
                 SetStatus(null, 0, 0, length);
                 for (ushort i = 0; i < length; i++)
                 {
                     AbstractRecipeInfo info = new AbstractRecipeInfo
                     {
-                        Level = s.ReadInt(),
-                        RequiredCraftsmanship = s.ReadInt(),
-                        RequiredControl = s.ReadInt(),
-                        Durability = s.ReadInt(),
-                        MaxProgress = s.ReadInt(),
-                        MaxQuality = s.ReadInt()
+                        Level = s.ReadS32(),
+                        RequiredCraftsmanship = s.ReadS32(),
+                        RequiredControl = s.ReadS32(),
+                        Durability = s.ReadS32(),
+                        MaxProgress = s.ReadS32(),
+                        MaxQuality = s.ReadS32()
                     };
-                    var ll = s.ReadUShort();
+                    var ll = s.ReadS32();
                     RecipeRotations[info] = new List<RecipeSolutionInfo>(ll);
                     for (int j = 0; j < ll; j++)
                     {
                         RecipeSolutionInfo rotation = new RecipeSolutionInfo();
-                        rotation.MinLevel = s.ReadInt();
-                        rotation.MaxCraftsmanship = s.ReadInt();
-                        rotation.MinCraftsmanship = s.ReadInt();
-                        rotation.MinControl = s.ReadInt();
-                        rotation.CP = s.ReadInt();
-                        ushort l = s.ReadUShort();
+                        rotation.MinLevel = s.ReadS32();
+                        rotation.MaxCraftsmanship = s.ReadS32();
+                        rotation.MinCraftsmanship = s.ReadS32();
+                        rotation.MinControl = s.ReadS32();
+                        rotation.CP = s.ReadS32();
+                        int l = s.ReadS32();
                         ushort[] array = new ushort[l];
                         for (int k = 0; k < l; k++)
-                            array[k] = s.ReadUShort();
+                            array[k] = (ushort)s.ReadU30();
                         rotation.Rotation = array;
                         RecipeRotations[info].Add(rotation);
                     }
@@ -638,29 +639,29 @@ namespace FFXIVCraftingSim
             DataStream s = new DataStream();
            
             var keys = RecipeRotations.Keys.ToArray();
-            s.WriteUShort((ushort)keys.Length);
+            s.WriteS32(keys.Length);
             for (int i = 0; i < keys.Length; i++)
             {
                 var value = keys[i];
-                s.WriteInt(value.Level);
-                s.WriteInt(value.RequiredCraftsmanship);
-                s.WriteInt(value.RequiredControl);
-                s.WriteInt(value.Durability);
-                s.WriteInt(value.MaxProgress);
-                s.WriteInt(value.MaxQuality);
+                s.WriteS32(value.Level);
+                s.WriteS32(value.RequiredCraftsmanship);
+                s.WriteS32(value.RequiredControl);
+                s.WriteS32(value.Durability);
+                s.WriteS32(value.MaxProgress);
+                s.WriteS32(value.MaxQuality);
 
                 var rotations = RecipeRotations[value];
-                s.WriteUShort((ushort)rotations.Count);
+                s.WriteS32(rotations.Count);
                 for (int j = 0; j < rotations.Count; j++)
                 {
-                    s.WriteInt(rotations[j].MinLevel);
-                    s.WriteInt(rotations[j].MaxCraftsmanship);
-                    s.WriteInt(rotations[j].MinCraftsmanship);
-                    s.WriteInt(rotations[j].MinControl);
-                    s.WriteInt(rotations[j].CP);
-                    s.WriteUShort((ushort)rotations[j].Rotation.Array.Length);
+                    s.WriteS32(rotations[j].MinLevel);
+                    s.WriteS32(rotations[j].MaxCraftsmanship);
+                    s.WriteS32(rotations[j].MinCraftsmanship);
+                    s.WriteS32(rotations[j].MinControl);
+                    s.WriteS32(rotations[j].CP);
+                    s.WriteS32(rotations[j].Rotation.Array.Length);
                     for (int k = 0; k < rotations[j].Rotation.Array.Length; k++)
-                        s.WriteUShort(rotations[j].Rotation.Array[k]);
+                        s.WriteU30(rotations[j].Rotation.Array[k]);
                 }
                 if (i % 100 == 0)
                     SetStatus(null, i);
@@ -728,7 +729,9 @@ namespace FFXIVCraftingSim
         {
             if (sim == null || sim.CurrentRecipe == null || sim.CustomRecipe)
                 return;
-               CraftingSim s = sim.Clone();
+            if (sim.CurrentProgress < sim.CurrentRecipe.MaxProgress || sim.CurrentQuality < sim.CurrentRecipe.MaxQuality)
+                return;
+            CraftingSim s = sim.Clone();
             s.AddActions(true, sim.GetCraftingActions());
 
             var abstractData = s.CurrentRecipe.GetAbstractData();
@@ -738,8 +741,7 @@ namespace FFXIVCraftingSim
                 return;
             }
 
-            if (s.CurrentProgress < s.CurrentRecipe.MaxProgress || s.CurrentQuality < s.CurrentRecipe.MaxQuality)
-                return;
+            
 
             RecipeSolutionInfo infoWithMinLevel = RecipeSolutionInfo.FromSim(s, true);
             RecipeSolutionInfo infoWithoutMinLevel = RecipeSolutionInfo.FromSim(s, false);

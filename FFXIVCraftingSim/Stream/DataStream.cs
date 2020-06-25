@@ -56,6 +56,43 @@ namespace FFXIVCraftingSim.Stream
             return BitConverter.ToUInt16(ReadBytes(2), 0);
         }
 
+        public uint ReadU30()
+        {
+            uint num1 = 0;
+            int num2 = 0;
+            while (num2 != 35)
+            {
+                byte num3 = (byte)ReadByte();
+                num1 |= (num3 & (uint)sbyte.MaxValue) << num2;
+                num2 += 7;
+                if ((num3 & 128) == 0)
+                    return num1;
+            }
+
+            return num1;
+        }
+
+        public void WriteU30(uint value)
+        {
+            uint num = value;
+            while (num >= 128U)
+            {
+                WriteByte((byte)(num | 128U));
+                num >>= 7;
+            }
+            WriteByte((byte)num);
+        }
+
+        public int ReadS32()
+        {
+            return (int)ReadU30();
+        }
+
+        public void WriteS32(int value)
+        {
+            WriteU30((uint)value);
+        }
+
         public void WriteInt(int value)
         {
             WriteBytes(BitConverter.GetBytes(value));
@@ -65,6 +102,7 @@ namespace FFXIVCraftingSim.Stream
         {
             return BitConverter.ToInt32(ReadBytes(4), 0);
         }
+
 
         public void WriteUInt(uint value)
         {

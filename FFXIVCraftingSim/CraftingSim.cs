@@ -459,7 +459,7 @@ namespace FFXIVCraftingSim
 
             if (CurrentRecipe == null)
                 return;
-
+            Step = 1;
             //if (states == null)
             //    states = G.CraftingStates;
 
@@ -487,7 +487,7 @@ namespace FFXIVCraftingSim
             for (int i = 0; i < CraftingActionsLength; i++)
             {
                 CraftingAction action = CraftingActions[i];
-                Step = i;
+                
 
                 if (CurrentDurability <= 0 ||
                     action.AsFirstActionOnly && i > 0 ||
@@ -495,6 +495,7 @@ namespace FFXIVCraftingSim
                     action.GetCPCost(this) > CurrentCP ||
                     action.CheckInner(this) != CraftingActionResult.Success)
                 {
+                    Step--;
                     RemoveRedundantActions();
                     if (states != null)
                     {
@@ -506,8 +507,8 @@ namespace FFXIVCraftingSim
                     FinishedExecution(this);
                     return;
                 }
-                
 
+                Step++;
                 action.IncreaseProgress(this);
                 action.IncreaseQuality(this);
 

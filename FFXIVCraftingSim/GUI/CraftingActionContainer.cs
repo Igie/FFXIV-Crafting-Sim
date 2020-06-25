@@ -62,9 +62,9 @@ namespace FFXIVCraftingSim.GUI
             }
         }
 
-        public CraftingActionContainer(BitmapSource source, CraftingSim sim, CraftingAction action)
+        public CraftingActionContainer(CraftingSim sim, CraftingAction action)
         {
-            Source = source;
+            Source = G.Actions[action.Name].Images[sim.CurrentRecipe.ClassJob];
             Sim = sim;
             Action = action;
         }

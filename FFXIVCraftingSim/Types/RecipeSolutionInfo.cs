@@ -121,7 +121,7 @@ namespace FFXIVCraftingSim.Types
 
             int oldCraftsmanshipBuff = s.CraftsmanshipBuff;
             int oldControlBuff = s.ControlBuff;
-            while (s.CurrentProgress >= recipeProgress)
+            while (s.CurrentProgress > recipeProgress)
             {
                 s.CraftsmanshipBuff--;
                 s.ExecuteActions();
@@ -132,7 +132,7 @@ namespace FFXIVCraftingSim.Types
             result.MinCraftsmanship = Math.Max(s.Craftsmanship, sim.CurrentRecipe.RequiredCraftsmanship);
 
 
-            while (s.CurrentQuality >= recipeQuality)
+            while (s.CurrentQuality > recipeQuality)
             {
                 s.ControlBuff--;
                 s.ExecuteActions();
