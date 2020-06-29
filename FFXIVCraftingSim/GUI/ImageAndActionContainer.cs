@@ -1,9 +1,4 @@
-﻿using FFXIVCraftingSim.Actions;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using FFXIVCraftingSimLib.Actions;
 using System.Windows.Media.Imaging;
 
 namespace FFXIVCraftingSim.GUI
@@ -13,7 +8,7 @@ namespace FFXIVCraftingSim.GUI
         public CraftingAction CraftingAction { get; private set; }
         public BitmapSource BitmapSource { get; private set; }
 
-        public ImageAndActionContainer(CraftingSim sim, CraftingAction craftingAction)
+        public ImageAndActionContainer(CraftingSimEx sim, CraftingAction craftingAction)
         {
             CraftingAction = craftingAction;
             BitmapSource = G.Actions[CraftingAction.Name].Images[sim.CurrentRecipe.ClassJob];

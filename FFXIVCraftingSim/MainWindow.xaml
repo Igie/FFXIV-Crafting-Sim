@@ -4,12 +4,10 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:FFXIVCraftingSim"
-        xmlns:System="clr-namespace:System;assembly=mscorlib" 
-        xmlns:conv="clr-namespace:FFXIVCraftingSim.Converters" 
-        xmlns:Actions="clr-namespace:FFXIVCraftingSim.Actions" 
-        x:Class="FFXIVCraftingSim.MainWindow"
+    xmlns:conv="clr-namespace:FFXIVCraftingSim.Converters"
+    x:Class="FFXIVCraftingSim.MainWindow"
         mc:Ignorable="d"
-        Title="Crafting Simulator" Height="900" Width="1160" Loaded="Window_Loaded" Closing="Window_Closing"
+        Title="Crafting Simulator" Height="900" Width="1160" Loaded="Window_Loaded" Closing="Window_Closing" FontFamily="Consolas"
     >
     <Window.Resources>
         <Style x:Key="LabelStyle" TargetType="{x:Type Label}">
@@ -177,7 +175,7 @@
                 </TextBlock>
                 <Separator Height="2" Margin="0,99,0,0" VerticalAlignment="Top"/>
                 <GroupBox  Margin="0,124,0,305">
-                    
+
                     <GroupBox.Header>
                         <TextBlock>
                             <TextBlock.Text>
@@ -214,7 +212,7 @@
                             </ListView.ItemTemplate>
                         </ListView>
                         <ListView x:Name="FinisherRotations" Margin="0,83,0,0">
-                            
+
                         </ListView>
                     </Grid>
                 </GroupBox>
@@ -227,7 +225,7 @@
                                         <WrapPanel Orientation="Horizontal"/>
                                     </ItemsPanelTemplate>
                                 </ListView.ItemsPanel>
-          
+
                                 <ListView.ItemTemplate>
                                     <DataTemplate>
                                         <Grid Height="55" Width="35">
@@ -266,7 +264,7 @@
                                         <WrapPanel Orientation="Horizontal"/>
                                     </ItemsPanelTemplate>
                                 </ListView.ItemsPanel>
-    
+
                                 <ListView.ItemTemplate>
                                     <DataTemplate>
                                         <Grid>
@@ -285,7 +283,7 @@
                                         <WrapPanel Orientation="Horizontal"/>
                                     </ItemsPanelTemplate>
                                 </ListView.ItemsPanel>
-     
+
                                 <ListView.ItemTemplate>
                                     <DataTemplate>
                                         <Grid>
@@ -323,17 +321,21 @@
             </Grid>
 
         </GroupBox>
-        <Label x:Name="LabelScore" Content="Score:" HorizontalAlignment="Left" Margin="10,442,0,0" FontFamily="Consolas" Height="24" VerticalAlignment="Top" />
-        <Button x:Name="ButtonFindBest" Content="Simulate" HorizontalAlignment="Left" Margin="10,471,0,0" Width="256" FontFamily="Consolas" Click="ButtonFindBest_Click" Height="18" VerticalAlignment="Top"/>
-        <Label x:Name="LabelIterations" Content="" HorizontalAlignment="Left" Margin="138,442,0,0" VerticalAlignment="Top" Width="128"/>
-        <Label Content="Task Count:" HorizontalAlignment="Left" Margin="10,565,0,0" VerticalContentAlignment="Center" VerticalAlignment="Top" Width="147" FontFamily="Consolas"/>
-        <TextBox x:Name="TextBoxTaskCount" HorizontalAlignment="Left" Height="24" Margin="162,565,0,0" TextWrapping="Wrap" Text="12" VerticalContentAlignment="Center" VerticalAlignment="Top" Width="104"/>
-        <Label Content="Chromosome Count:" HorizontalAlignment="Left" Margin="10,594,0,0" VerticalContentAlignment="Center" VerticalAlignment="Top" Width="147" FontFamily="Consolas"/>
-        <TextBox x:Name="TextBoxChromosomeCount" HorizontalAlignment="Left" Height="24" Margin="162,594,0,0" TextWrapping="Wrap" Text="150" VerticalContentAlignment="Center" VerticalAlignment="Top" Width="104"/>
-        <Button x:Name="ButtonAddFromDatabase" Content="Add From Database" HorizontalAlignment="Left" Margin="138,623,0,0" VerticalAlignment="Top" Width="128" Click="ButtonAddFromDatabase_Click"/>
-        <Button x:Name="ButtonAddToDatabase" Content="Add To Database" HorizontalAlignment="Left" Margin="138,648,0,0" VerticalAlignment="Top" Width="128" Click="ButtonAddToDatabase_Click"/>
-        <CheckBox x:Name="CheckBoxLeaveActions" Content="Leave Current Actions" HorizontalAlignment="Left" Margin="10,494,0,0" VerticalAlignment="Top"/>
-        <CheckBox x:Name="CheckBoxUseDictionary" Content="Use Dictionary(High Memory Usage)" HorizontalAlignment="Left" Margin="10,514,0,0" VerticalAlignment="Top"/>
+        <Label x:Name="LabelScore" Content="Score:" HorizontalAlignment="Left" Margin="10,440,0,0" FontFamily="Consolas" Height="24" VerticalAlignment="Top" Width="248" />
+        <Button x:Name="ButtonFindBest" Content="Simulate" HorizontalAlignment="Left" Margin="10,504,0,0" Width="248" FontFamily="Consolas" Click="ButtonFindBest_Click" Height="18" VerticalAlignment="Top"/>
+        <Label x:Name="LabelIterations" Content="Iterations: 0" HorizontalAlignment="Left" Margin="9,469,0,0" VerticalAlignment="Top" Height="24" Width="249"/>
+        <Label Content="Task Count:" HorizontalAlignment="Left" Margin="10,622,0,0" VerticalContentAlignment="Center" VerticalAlignment="Top" Width="147" FontFamily="Consolas"/>
+        <TextBox x:Name="TextBoxTaskCount" HorizontalAlignment="Left" Height="24" Margin="162,622,0,0" TextWrapping="Wrap" Text="10" VerticalContentAlignment="Center" VerticalAlignment="Top" Width="96"/>
+        <Label Content="Chromosome Count:" HorizontalAlignment="Left" Margin="10,651,0,0" VerticalContentAlignment="Center" VerticalAlignment="Top" Width="147" FontFamily="Consolas"/>
+        <TextBox x:Name="TextBoxChromosomeCount" HorizontalAlignment="Left" Height="24" Margin="162,651,0,0" TextWrapping="Wrap" Text="190" VerticalContentAlignment="Center" VerticalAlignment="Top" Width="96"/>
+        <Button x:Name="ButtonAddFromDatabase" Content="Add From Database" HorizontalAlignment="Left" Margin="138,680,0,0" VerticalAlignment="Top" Width="120" Click="ButtonAddFromDatabase_Click"/>
+        <Button x:Name="ButtonAddToDatabase" Content="Add To Database" HorizontalAlignment="Left" Margin="138,705,0,0" VerticalAlignment="Top" Width="120" Click="ButtonAddToDatabase_Click"/>
+        <CheckBox x:Name="CheckBoxLeaveActions" Content="Leave Current Actions" HorizontalAlignment="Left" Margin="10,582,0,0" VerticalAlignment="Top" Width="248"/>
+        <CheckBox x:Name="CheckBoxUseDictionary" Content="Use Dictionary(High Memory Usage)" HorizontalAlignment="Left" Margin="10,602,0,0" VerticalAlignment="Top" Width="248"/>
+        <TextBox x:Name="TextBoxTimeLimit" HorizontalAlignment="Left" Height="18" Margin="138,533,0,0" TextWrapping="Wrap" Text="0" VerticalAlignment="Top" Width="120" FontFamily="Consolas" TextChanged="TextChangedAllowNumericOnly"/>
+        <Label Content="For milliseconds:" HorizontalAlignment="Left" Margin="10,529,0,0" VerticalAlignment="Top" FontFamily="Consolas"/>
+        <TextBox x:Name="TextBoxIterationLimit" HorizontalAlignment="Left" Height="18" Margin="138,557,0,0" TextWrapping="Wrap" Text="0" VerticalAlignment="Top" Width="120" FontFamily="Consolas" TextChanged="TextChangedAllowNumericOnly"/>
+        <Label Content="For iterations:" HorizontalAlignment="Left" Margin="10,553,0,0" VerticalAlignment="Top" FontFamily="Consolas"/>
 
 
 

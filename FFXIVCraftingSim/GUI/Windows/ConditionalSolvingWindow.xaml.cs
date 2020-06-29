@@ -1,6 +1,7 @@
-﻿using FFXIVCraftingSim.Actions;
-using FFXIVCraftingSim.Solving.Conditional;
-using FFXIVCraftingSim.Types;
+﻿
+using FFXIVCraftingSimLib.Actions;
+using FFXIVCraftingSimLib.Solving.Conditional;
+using FFXIVCraftingSimLib.Types;
 using SaintCoinach.Xiv;
 using System;
 using System.Collections.Generic;
@@ -13,12 +14,6 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Shapes;
 
 namespace FFXIVCraftingSim.GUI.Windows
 {
@@ -31,8 +26,8 @@ namespace FFXIVCraftingSim.GUI.Windows
         public PropertyInfo[] AllProperties { get; private set; }
         public ConditionInfo[] AllConditions { get; private set; }
 
-        private CraftingSim Sim { get; set; }
-        private CraftingSim OriginalSim { get; set; }
+        private CraftingSimEx Sim { get; set; }
+        private CraftingSimEx OriginalSim { get; set; }
         private CraftingCondition _SelectedCondition { get; set; }
         public CraftingCondition SelectedCondition
         {
@@ -47,7 +42,7 @@ namespace FFXIVCraftingSim.GUI.Windows
 
         public ObservableCollection<CraftingCondition> CraftingConditions { get; set; }
 
-        public event Action<CraftingSim> FinishedConditionExecution = delegate { };
+        public event Action<CraftingSimEx> FinishedConditionExecution = delegate { };
 
         public ConditionalSolvingWindow()
         {
@@ -56,7 +51,7 @@ namespace FFXIVCraftingSim.GUI.Windows
         public event PropertyChangingEventHandler PropertyChanging = delegate { };
         public event PropertyChangedEventHandler PropertyChanged = delegate { };
 
-        public void Initialize(CraftingSim sim)
+        public void Initialize(CraftingSimEx sim)
         {
             Sim = sim.Clone();
             OriginalSim = sim;
@@ -112,14 +107,14 @@ namespace FFXIVCraftingSim.GUI.Windows
             while (shouldContinue)
             {
                 var f = CraftingConditions.Where(x => x.AreConditionsSatisfied(Sim)).ToArray();
-                if (f.Length == 0 || Sim.CraftingActionsLength >= CraftingSim.MaxActions || Sim.CurrentDurability <= 0)
+                if (f.Length == 0 || Sim.CraftingActionsLength >= CraftingSimEx.MaxActions || Sim.CurrentDurability <= 0)
                     shouldContinue = false;
                 else
                 {
                     int simLength = Sim.CraftingActionsLength;
                     for (int i = 0; i < f.Length; i++)
                     { 
-                        Sim.AddActions(true, f[i].ActionContainer.CraftingAction);
+                        Sim.AddActions(true, f[i].CraftingAction);
                         if (Sim.CraftingActionsLength > simLength)
                         {
                             f[i].ActionSettings.TimesUsed++;

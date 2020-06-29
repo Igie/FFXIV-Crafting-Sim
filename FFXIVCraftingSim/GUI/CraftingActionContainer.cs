@@ -1,10 +1,6 @@
-﻿using FFXIVCraftingSim.Actions;
+﻿using FFXIVCraftingSimLib.Actions;
 using System;
-using System.Collections.Generic;
 using System.ComponentModel;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Media.Imaging;
 
 namespace FFXIVCraftingSim.GUI
@@ -25,7 +21,7 @@ namespace FFXIVCraftingSim.GUI
             }
         }
 
-        private CraftingSim Sim { get; set; }
+        private CraftingSimEx Sim { get; set; }
 
         public BitmapSource Source { get; set; }
         public CraftingAction Action { get; set; }
@@ -62,7 +58,7 @@ namespace FFXIVCraftingSim.GUI
             }
         }
 
-        public CraftingActionContainer(CraftingSim sim, CraftingAction action)
+        public CraftingActionContainer(CraftingSimEx sim, CraftingAction action)
         {
             Source = G.Actions[action.Name].Images[sim.CurrentRecipe.ClassJob];
             Sim = sim;

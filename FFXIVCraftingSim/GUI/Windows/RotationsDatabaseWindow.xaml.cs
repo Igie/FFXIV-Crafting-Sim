@@ -1,21 +1,14 @@
-﻿using FFXIVCraftingSim.Actions;
-using FFXIVCraftingSim.Types;
-using FFXIVCraftingSim.Types.GameData;
+﻿using FFXIVCraftingSimLib;
+using FFXIVCraftingSimLib.Actions;
+using FFXIVCraftingSimLib.Types;
+using FFXIVCraftingSimLib.Types.GameData;
 using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Controls;
 using System.Windows.Data;
-using System.Windows.Documents;
 using System.Windows.Input;
-using System.Windows.Media;
 using System.Windows.Media.Imaging;
-using System.Windows.Shapes;
 using System.Windows.Threading;
 
 namespace FFXIVCraftingSim.GUI.Windows
@@ -42,7 +35,7 @@ namespace FFXIVCraftingSim.GUI.Windows
             AbstractRecipeInfo = recipeInfo.GetAbstractData();
             
             Dispatcher.Invoke(() => {
-                var rotations = G.RecipeRotations[AbstractRecipeInfo].Select(x => new RotationInfoContainer(x, ClassJobInfo));
+                var rotations = GameData.RecipeRotations[AbstractRecipeInfo].Select(x => new RotationInfoContainer(x, ClassJobInfo));
                 DataGridRotations.ItemsSource = rotations;
             });
         }
@@ -65,14 +58,30 @@ namespace FFXIVCraftingSim.GUI.Windows
                 return;
             G.RemoveRotation(AbstractRecipeInfo, (DataGridRotations.SelectedItem as RotationInfoContainer).RotationInfo);
             Dispatcher.Invoke(() => {
-                var rotations = G.RecipeRotations[AbstractRecipeInfo].Select(x => new RotationInfoContainer(x, ClassJobInfo));
+                var rotations = GameData.RecipeRotations[AbstractRecipeInfo].Select(x => new RotationInfoContainer(x, ClassJobInfo));
                 DataGridRotations.ItemsSource = rotations;
             });
         }
 
-        private void FilterForCurrentStatsClicked(object sender, RoutedEventArgs e)
+        private void CheckBoxFilterStatsClicked(object sender, RoutedEventArgs e)
         {
+            if (DataGridRotations.ItemsSource == null) return;
+            CollectionViewSource.GetDefaultView(DataGridRotations.ItemsSource).Filter = UserFilter;
+        }
 
+        private bool UserFilter(object item)
+        {
+            if (CheckBoxFilterForStats.IsChecked == false)
+                return true;
+
+            int lvl = G.MainWindow.Sim.Level;
+            int cft = G.MainWindow.Sim.Craftsmanship;
+            int ctrl = G.MainWindow.Sim.Control;
+
+            var cont = (item as RotationInfoContainer).RotationInfo;
+            if (lvl == cont.MinLevel && cft <= cont.MaxCraftsmanship && cft >= cont.MinCraftsmanship && ctrl >= cont.MinControl)
+                return true;
+            return false;
         }
     }
 

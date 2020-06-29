@@ -1,17 +1,6 @@
-﻿using FFXIVCraftingSim.Types;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using FFXIVCraftingSimLib.Types;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Shapes;
 
 namespace FFXIVCraftingSim.GUI.Windows
 {
@@ -20,7 +9,7 @@ namespace FFXIVCraftingSim.GUI.Windows
     /// </summary>
     public partial class RecipeSettingsWindow : Window
     {
-        private CraftingSim Sim { get; set; }
+        private CraftingSimEx Sim { get; set; }
         private CraftingSimStepSettings[] Settings { get; set; }
 
         private string[] Names = new string[] { "Condition" };
@@ -30,7 +19,7 @@ namespace FFXIVCraftingSim.GUI.Windows
             InitializeComponent();
         }
 
-        public void SetCraftingSim(CraftingSim sim)
+        public void SetCraftingSim(CraftingSimEx sim)
         {
             Sim = sim;
             Settings = sim.StepSettings;
@@ -72,7 +61,7 @@ namespace FFXIVCraftingSim.GUI.Windows
 
         private void ConditionChanged(object sender, SelectionChangedEventArgs e)
         {
-            Sim.ExecuteActions();
+            
         }
     }
 

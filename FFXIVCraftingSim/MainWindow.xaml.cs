@@ -1,18 +1,21 @@
-﻿using FFXIVCraftingSim.Actions;
+﻿using FFXIVCraftingSim;
 using FFXIVCraftingSim.GUI;
 using FFXIVCraftingSim.GUI.Windows;
-using FFXIVCraftingSim.Solving;
-using FFXIVCraftingSim.Solving.GeneticAlgorithm;
 using FFXIVCraftingSim.Stream;
-using FFXIVCraftingSim.Types;
 using FFXIVCraftingSim.Types.GameData;
+using FFXIVCraftingSimLib;
+using FFXIVCraftingSimLib.Actions;
+using FFXIVCraftingSimLib.Solving;
+using FFXIVCraftingSimLib.Solving.GeneticAlgorithm;
+using FFXIVCraftingSimLib.Types;
+using FFXIVCraftingSimLib.Types.GameData;
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -27,7 +30,7 @@ namespace FFXIVCraftingSim
     /// </summary>
     public partial class MainWindow : Window
     {
-        public CraftingSim Sim { get; set; }
+        public CraftingSimEx Sim { get; set; }
 
         private CraftingActionContainer[] AvailableActions { get; set; }
 
@@ -40,12 +43,12 @@ namespace FFXIVCraftingSim
 
         public MainWindow()
         {
-            Sim = new CraftingSim();
+            InitializeComponent();
+
+            Sim = new CraftingSimEx();
             Sim.FinishedStep += Sim_FinishedStep;
             Sim.FinishedExecution += Sim_FinishedExecution;
             Sim.PropertyChanged += Sim_PropertyChanged;
-
-            InitializeComponent();
         }
 
         private void Sim_PropertyChanged(object sender, PropertyChangedEventArgs e)
@@ -69,14 +72,7 @@ namespace FFXIVCraftingSim
             if (sender == null) return;
             string text = textBox.Text;
             textBox.Text = string.Concat(text.Where(x => char.IsDigit(x)));
-
-            //PlayerStatsFromTextToSim();
-           // UpdateCraftingText();
-            //if (Sim != null)
-               //Sim.ExecuteActions();
         }
-
-
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
@@ -85,19 +81,16 @@ namespace FFXIVCraftingSim
                    Debugger.Log(0, "Error", ee.ToString());
                });
 
-            G.Loaded += G_Loaded;
+            G.Initialized += GInitialized;
+            G.Reloaded += GInitialized;
             G.Init(this);
-
-
         }
 
-
-
-        private void G_Loaded()
+        private void GInitialized()
         {
             if (File.Exists("Settings.db"))
             {
-                DataStream s = new DataStream(File.ReadAllBytes("Settings.db"));
+                DataStreamEx s = new DataStreamEx(File.ReadAllBytes("Settings.db"));
                 int recipeId = s.ReadInt();
 
                 Sim.Level = s.ReadInt();
@@ -148,20 +141,40 @@ namespace FFXIVCraftingSim
             {
                 Solver = new GASolver(Sim);
                 Solver.GenerationRan += Solver_GenerationRan;
+                Solver.FoundBetterRotation += Solver_FoundBetterRotation;
+                Solver.Stopped += Solver_Stopped;
             }
         }
 
+        private void Solver_Stopped()
+        {
+            try
+            {
+                Dispatcher.Invoke(() =>
+                {
+                    if (PopulationsWindow != null)
+                        PopulationsWindow.Close();
+                    ButtonFindBest.Content = "Simulate";
+                });
+            }
+            catch (Exception e)
+            { Debugger.Break(); }
+        }
 
+        private void Solver_FoundBetterRotation(CraftingSim obj)
+        {
+            UpdateRotationsCount();
+        }
 
         private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
             try
             {
-                G.WriteRecipeRotations();
+                GameData.WriteRecipeRotations();
                 TextBlockCP.Text.ToString();
                 if (Sim == null)
                     return;
-                DataStream s = new DataStream();
+                DataStreamEx s = new DataStreamEx();
                 Sim.CraftsmanshipBuff = 0;
                 Sim.ControlBuff = 0;
                 Sim.MaxCPBuff = 0;
@@ -371,6 +384,8 @@ namespace FFXIVCraftingSim
                 {
                     AvailableActions[i].Update();
                 }
+
+                LabelScore.Content = "Score: " + Sim.Score.ToString("#.###");
             });
            
         }
@@ -406,8 +421,6 @@ namespace FFXIVCraftingSim
             });
 
             UpdateRotationsCount();
-
-
         }
 
         private void UpdateAvailableActions(RecipeInfo recipeInfo)
@@ -458,7 +471,13 @@ namespace FFXIVCraftingSim
 
             if (Solver.Continue)
             {
-                Solver.Start(taskCount, chromosomeCount, CheckBoxLeaveActions.IsChecked == true);
+                int timeLimit = 0;
+                int iterationLimit = 0;
+
+                int.TryParse(TextBoxTimeLimit.Text, out timeLimit);
+                int.TryParse(TextBoxIterationLimit.Text, out iterationLimit);
+
+                Solver.Start(taskCount, chromosomeCount, CheckBoxLeaveActions.IsChecked == true, timeLimit, iterationLimit);
                 PopulationsWindow = new PopulationsWindow();
                 PopulationsWindow.AddSolver(Solver);
                 PopulationsWindow.Closed += (x, y) =>
@@ -478,12 +497,13 @@ namespace FFXIVCraftingSim
 
         }
 
-        private void Solver_GenerationRan(Solving.GeneticAlgorithm.Population obj)
+        private Task SetIterationsCount;
+        private void Solver_GenerationRan(Population obj)
         {
-            Dispatcher.Invoke(() =>
-            {
-                LabelIterations.Content = "Iterations: " + Solver?.Iterations;
-            });
+
+                if (SetIterationsCount == null || SetIterationsCount.IsCompleted)
+                    SetIterationsCount = Task.Factory.StartNew(() => Dispatcher.Invoke(() => LabelIterations.Content = "Iterations: " + Solver?.Iterations),
+                    CancellationToken.None, TaskCreationOptions.None, PriorityScheduler.BelowNormal);
         }
 
         private void CopyMacroClicked(object sender, RoutedEventArgs e)
@@ -511,7 +531,7 @@ namespace FFXIVCraftingSim
         {
             if (Sim == null || Sim.CurrentRecipe == null)
                 return;
-            G.AddRotationFromSim(Sim);
+            Utils.AddRotationFromSim(Sim);
             UpdateRotationsCount();
         }
 
@@ -531,9 +551,9 @@ namespace FFXIVCraftingSim
         public void UpdateRotationsCount()
         {
             var data = Sim.CurrentRecipe.GetAbstractData();
-            if (!G.RecipeRotations.ContainsKey(data))
-                G.RecipeRotations[data] = new List<RecipeSolutionInfo>();
-            Dispatcher.Invoke(() => LabelRotationsInDatabase.Content = "Rotations in Database: " + G.RecipeRotations[data].Count);
+            if (!GameData.RecipeRotations.ContainsKey(data))
+                GameData.RecipeRotations[data] = new List<RecipeSolutionInfo>();
+            Dispatcher.Invoke(() => LabelRotationsInDatabase.Content = "Rotations in Database: " + GameData.RecipeRotations[data].Count);
         }
 
 
@@ -542,13 +562,11 @@ namespace FFXIVCraftingSim
             RecipeSettingsWindow window = new RecipeSettingsWindow();
             window.SetCraftingSim(Sim);
             window.ShowDialog();
-
         }
 
         private void ClearAllClicked(object sender, RoutedEventArgs e)
         {
             Sim.RemoveActions();
-            //ListViewActions.Items.Clear();
         }
 
         private void ButtonAddFromDatabase_Click(object sender, RoutedEventArgs e)
@@ -559,11 +577,8 @@ namespace FFXIVCraftingSim
             ushort[][] actions = rotations.Select(x => x.Rotation.Array.ToArray()).ToArray();
             for (int i = 0; i < Solver.Populations.Length; i++)
             {
-               
                     Solver.Populations[i].AddChromosomes(actions, true);
-               
             }
-
         }
 
         private void ButtonAddToDatabase_Click(object sender, RoutedEventArgs e)
@@ -583,7 +598,8 @@ namespace FFXIVCraftingSim
             }
 
             foreach (var u in uniqueValidChromosomes)
-                G.AddRotationFromSim(u.Sim);
+                Utils.AddRotationFromSim(u.Sim);
+            UpdateRotationsCount();
         }
 
         private ConditionalSolvingWindow ConditionalSolvingWindow { get; set; }
@@ -594,7 +610,6 @@ namespace FFXIVCraftingSim
             ConditionalSolvingWindow.FinishedConditionExecution += ConditionalSolvingWindow_FinishedConditionExecution;
             ConditionalSolvingWindow.Closed += ConditionalSolvingWindow_Closed;
             ConditionalSolvingWindow.Show();
-
         }
 
         private void ConditionalSolvingWindow_Closed(object sender, EventArgs e)
@@ -603,7 +618,7 @@ namespace FFXIVCraftingSim
             ConditionalSolvingWindow.FinishedConditionExecution -= ConditionalSolvingWindow_FinishedConditionExecution;
         }
 
-        private void ConditionalSolvingWindow_FinishedConditionExecution(CraftingSim obj)
+        private void ConditionalSolvingWindow_FinishedConditionExecution(CraftingSimEx obj)
         {
             Sim.RemoveActions();
             for (int i = 0; i < obj.StepSettings.Length; i++)

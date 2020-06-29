@@ -1,5 +1,5 @@
-﻿using FFXIVCraftingSim.Actions;
-using FFXIVCraftingSim.Types.GameData;
+﻿using FFXIVCraftingSimLib.Actions;
+using FFXIVCraftingSimLib.Types.GameData;
 using System;
 using System.Collections.Generic;
 using System.Globalization;

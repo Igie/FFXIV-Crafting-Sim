@@ -7,7 +7,7 @@
         mc:Ignorable="d"
         Title="Select Rotation" Height="450" Width="1025" WindowStyle="ToolWindow" >
     <Grid>
-        <DataGrid Name="DataGridRotations" AutoGenerateColumns="False" IsReadOnly="True" MouseDoubleClick="DataGridRotations_MouseDoubleClick" SelectionMode="Single" RowDetailsVisibilityMode="Visible" FontFamily="Consolas" Margin="0,18,0,0">
+        <DataGrid Name="DataGridRotations" AutoGenerateColumns="False" IsReadOnly="True" MouseDoubleClick="DataGridRotations_MouseDoubleClick" SelectionMode="Single" RowDetailsVisibilityMode="Visible" FontFamily="Consolas" Margin="0,16,0,0">
             <DataGrid.ContextMenu>
                 <ContextMenu>
                     <MenuItem Header="Remove" Click="ContextMenuItemRemoveClicked" />
@@ -47,6 +47,6 @@
                 </DataTemplate>
             </DataGrid.RowDetailsTemplate>
         </DataGrid>
-        <Button Content="Filter For Current Stats" HorizontalAlignment="Left" VerticalAlignment="Top" Width="200" FontFamily="Consolas" Click="FilterForCurrentStatsClicked"/>
+        <CheckBox x:Name="CheckBoxFilterForStats" Content="Filter For Current Stats" HorizontalAlignment="Left" VerticalAlignment="Top" Width="200" FontFamily="Consolas" Height="16" Click="CheckBoxFilterStatsClicked"/>
     </Grid>
 </Window>

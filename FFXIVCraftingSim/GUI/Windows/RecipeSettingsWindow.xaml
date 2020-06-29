@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:FFXIVCraftingSim.GUI.Windows"
         xmlns:sys="clr-namespace:System;assembly=mscorlib"
-        xmlns:types="clr-namespace:FFXIVCraftingSim.Types"
+        xmlns:types="clr-namespace:FFXIVCraftingSimLib.Types;assembly=FFXIVCraftingSimLib"
         mc:Ignorable="d"
         Title="Recipe Settings" Height="450" Width="800">
     <Window.Resources>
@@ -35,6 +35,5 @@
             </ListView.View>
         </ListView>
         <Button Content="Apply" HorizontalAlignment="Left" Width="75" Height="20" VerticalAlignment="Bottom" FontFamily="Consolas" Click="ApplyClicked" />
-        <Button Content="Remove" HorizontalAlignment="Left" Width="75" Height="20" VerticalAlignment="Bottom" FontFamily="Consolas" Margin="75,0,0,0" Click="RemoveClicked" />
     </Grid>
 </Window>

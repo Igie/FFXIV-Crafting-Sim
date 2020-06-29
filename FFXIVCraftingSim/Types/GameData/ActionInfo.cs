@@ -1,4 +1,5 @@
-﻿using System;
+﻿using FFXIVCraftingSimLib.Types.GameData;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;

@@ -1,8 +1,11 @@
 ﻿using FFXIVCraftingSim.Converters;
-using FFXIVCraftingSim.Solving;
 using FFXIVCraftingSim.Stream;
 using FFXIVCraftingSim.Types;
 using FFXIVCraftingSim.Types.GameData;
+using FFXIVCraftingSimLib;
+using FFXIVCraftingSimLib.Types;
+using FFXIVCraftingSimLib.Types.GameData;
+using Microsoft.Win32;
 using SaintCoinach;
 using SaintCoinach.Xiv;
 using SaintCoinach.Xiv.ItemActions;
@@ -22,60 +25,85 @@ namespace FFXIVCraftingSim
     {
         public static MainWindow MainWindow { get; private set; }
 
-        public static ARealmReversed Game { get; private set; }
+        
 
         public static List<RecipeInfo> Recipes { get; private set; }
+        public static Dictionary<RecipeInfo, List<ItemInfo>> Ingredients { get; private set; }
 
-        public static Dictionary<AbstractRecipeInfo, List<RecipeSolutionInfo>> RecipeRotations { get; private set; }
+
         public static Dictionary<int, ItemInfo> Items { get; private set; }
         public static Dictionary<string, ActionInfo> Actions { get; private set; }
 
         public static List<ItemInfo> CrafterFood { get; private set; }
 
-        public static List<LevelDifferenceInfo> LevelDifferences { get; private set; }
         public static Task InitTask { get; private set; }
         public static Task ReloadTask { get; private set; }
 
-        public static event System.Action Loaded = delegate { };
-
-        public static Dictionary<ExtendedArray<ushort>, CraftingSim> CraftingStates { get; private set; } = new Dictionary<ExtendedArray<ushort>, CraftingSim>();
-
-        public static void Init(MainWindow window)
+        public static event System.Action Initialized = delegate { };
+        public static event System.Action Reloaded = delegate { };
+        static G()
         {
-            DataStream s = new DataStream();
-            MainWindow = window;
-            Game = new ARealmReversed(@"C:\Program Files (x86)\SquareEnix\FINAL FANTASY XIV - A Realm Reborn", SaintCoinach.Ex.Language.English);
+            GameData.Initialized += GameDataInitialized;
+            GameData.Reloaded += GameDataReloaded;
+        }
 
+        private static void GameDataInitialized()
+        {
             if (InitTask == null || InitTask.IsCompleted)
                 InitTask = Task.Run(() =>
                 {
                     ReadItems();
                     ReadRecipes();
-                    
                     ReadActions();
-                    ReadLevelDifferences();
-                    ReadRecipeRotations();
-                    Loaded();
+                    Initialized();
                 });
         }
 
-        public static void ReloadDatabase()
+        private static void GameDataReloaded()
         {
             if (ReloadTask == null || ReloadTask.IsCompleted)
             {
                 ReloadTask = Task.Run(() =>
-                    {
-                        if (!InitTask.IsCompleted)
-                            InitTask.Wait();
-                        ReadItems(true);
-                        ReadRecipes(true);
-                        
-                        ReadActions(true);
-                        ReadLevelDifferences(true);
-                        ReadRecipeRotations(true);
-                        Loaded();
-                    });
+                {
+                    if (!InitTask.IsCompleted)
+                        InitTask.Wait();
+                    ReadItems(true);
+                    ReadRecipes(true);
+                    ReadActions(true);
+                    Reloaded();
+                });
             }
+        }
+
+        public static void Init(MainWindow window)
+        {
+            DataStreamEx s = new DataStreamEx();
+            MainWindow = window;
+
+            string directory1 = @"C:\Program Files (x86)\SquareEnix\FINAL FANTASY XIV - A Realm Reborn";
+            string directory2 = @"C:\Program Files (x86)\Steam\steamapps\common\FINAL FANTASY XIV Online";
+
+            string dir = "";
+
+            if (Directory.Exists(directory1))
+                dir = directory1;
+            else if (Directory.Exists(directory2))
+                dir = directory2;
+            else
+            {
+                OpenFileDialog dialog = new OpenFileDialog();
+                dialog.Title = "Select FFXIV Location";
+                if (dialog.ShowDialog() == false)
+                    App.Current.Shutdown(0);
+                string name = Directory.GetParent(Path.GetDirectoryName(dialog.FileName)).FullName;
+                dir = name;
+            }
+            GameData.Init(dir);
+        }
+
+        public static void ReloadDatabase()
+        {
+            GameData.Reload();
         }
 
         private static void ReadRecipes(bool deleteCurrent = false)
@@ -86,9 +114,10 @@ namespace FFXIVCraftingSim
             if (File.Exists("Recipes.db"))
             {
                 SetStatus("Reading Recipes from Recipes.db...", 0);
-                DataStream s = new DataStream(File.ReadAllBytes("Recipes.db"));
+                DataStreamEx s = new DataStreamEx(File.ReadAllBytes("Recipes.db"));
                 int length = s.ReadS32();
                 Recipes = new List<RecipeInfo>(length);
+                Ingredients = new Dictionary<RecipeInfo, List<ItemInfo>>();
                 SetStatus(null, 0, 0, length);
                 for (ushort i = 0; i < length; i++)
                 {
@@ -105,11 +134,11 @@ namespace FFXIVCraftingSim
                         MaxProgress = s.ReadS32(),
                         MaxQuality = s.ReadS32()
                     };
-
                     int c = s.ReadByte();
+                    List<ItemInfo> ingredients = new List<ItemInfo>(c);
                     for (int j = 0; j < c; j++)
-                        info.Ingredients.Add(Items[s.ReadS32()]);
-
+                        ingredients.Add(Items[s.ReadS32()]);
+                    Ingredients[info] = ingredients;
                     Recipes.Add(info);
 
                     if (i % 100 == 0)
@@ -121,11 +150,12 @@ namespace FFXIVCraftingSim
             }
             else
             {
-                var sheet = Game.GameData.GetSheet<Recipe>();
+                var sheet = GameData.Game.GameData.GetSheet<Recipe>();
                 SetStatus("Reading Recipes from sheets...", 0, 0, sheet.Count());
                 int count = sheet.Count();
                 int[] keys = sheet.Keys.ToArray();
                 Recipes = new List<RecipeInfo>(count);
+                Ingredients = new Dictionary<RecipeInfo, List<ItemInfo>>();
                 for (int i = 0; i < count; i++)
                 {
                     var value = sheet[keys[i]];
@@ -148,7 +178,9 @@ namespace FFXIVCraftingSim
 
                         try
                         {
-                            info.Ingredients.AddRange(value.Ingredients.Select(x => Items[x.Item.Key]));
+                            List<ItemInfo> ingredients = new List<ItemInfo>(value.Ingredients.Count());
+                            ingredients.AddRange(value.Ingredients.Select(x => Items[x.Item.Key]));
+                            Ingredients[info] = ingredients;
                         }
                         catch
                         {
@@ -173,7 +205,7 @@ namespace FFXIVCraftingSim
         private static void WriteRecipes()
         {
             SetStatus("Writing Recipes to Recipes.db...", 0, 0, Recipes.Count);
-            DataStream s = new DataStream();
+            DataStreamEx s = new DataStreamEx();
             s.WriteS32(Recipes.Count);
             for (int i = 0; i < Recipes.Count; i++)
             {
@@ -188,9 +220,12 @@ namespace FFXIVCraftingSim
                 s.WriteS32(value.Durability);
                 s.WriteS32(value.MaxProgress);
                 s.WriteS32(value.MaxQuality);
-                s.WriteByte((byte)value.Ingredients.Count);
-                for (int j = 0; j < value.Ingredients.Count; j++)
-                    s.WriteS32(value.Ingredients[j].Id);
+
+                var ingredients = Ingredients[value];
+
+                s.WriteByte((byte)ingredients.Count);
+                for (int j = 0; j < ingredients.Count; j++)
+                    s.WriteS32(ingredients[j].Id);
                 if (i % 100 == 0)
                     SetStatus(null, i);
             }
@@ -211,7 +246,7 @@ namespace FFXIVCraftingSim
             if (File.Exists("Items.db"))
             {
                 SetStatus("Reading Items from Items.db...", 0);
-                DataStream s = new DataStream(File.ReadAllBytes("Items.db"));
+                DataStreamEx s = new DataStreamEx(File.ReadAllBytes("Items.db"));
                 int length = s.ReadS32();
                 SetStatus(null, 0, 0, length);
                 for (ushort i = 0; i < length; i++)
@@ -250,7 +285,7 @@ namespace FFXIVCraftingSim
             }
             else
             {
-                var sheet = Game.GameData.GetSheet<Item>();
+                var sheet = GameData.Game.GameData.GetSheet<Item>();
 
                 int count = sheet.Count();
                 int[] keys = sheet.Keys.ToArray();
@@ -324,7 +359,7 @@ namespace FFXIVCraftingSim
         private static void WriteItems()
         {
             SetStatus("Writing Items to Items.db...", 0, 0, Items.Count);
-            DataStream s = new DataStream();
+            DataStreamEx s = new DataStreamEx();
             var values = Items.Values.ToArray();
             s.WriteS32((ushort)values.Length);
             for (int i = 0; i < Items.Count; i++)
@@ -369,7 +404,7 @@ namespace FFXIVCraftingSim
             if (File.Exists("Actions.db"))
             {
                 SetStatus("Reading Actions from Actions.db...", 0);
-                DataStream s = new DataStream(File.ReadAllBytes("Actions.db"));
+                DataStreamEx s = new DataStreamEx(File.ReadAllBytes("Actions.db"));
                 int length = s.ReadS32();
                 SetStatus(null, 0, 0, length);
                 for (int i = 0; i < length; i++)
@@ -398,7 +433,7 @@ namespace FFXIVCraftingSim
             }
             else
             {
-                var sheet = Game.GameData.GetSheet<SaintCoinach.Xiv.Action>();
+                var sheet = GameData.Game.GameData.GetSheet<SaintCoinach.Xiv.Action>();
                 SetStatus("Reading Actions from sheets...", 0, 0, sheet.Count());
                 int count = sheet.Count();
                 int[] keys = sheet.Keys.ToArray();
@@ -421,7 +456,7 @@ namespace FFXIVCraftingSim
                         SetStatus(null, i);
                 }
 
-                var otherSheet = Game.GameData.GetSheet<CraftAction>();
+                var otherSheet = GameData.Game.GameData.GetSheet<CraftAction>();
                 SetStatus("Reading Actions from sheets...", 0, 0, sheet.Count());
                 count = otherSheet.Count();
                 keys = otherSheet.Keys.ToArray();
@@ -451,7 +486,7 @@ namespace FFXIVCraftingSim
         private static void WriteActions()
         {
             SetStatus("Writing Actions to Actions.db...", 0, 0, Actions.Count);
-            DataStream s = new DataStream();
+            DataStreamEx s = new DataStreamEx();
             var values = Actions.Values.ToArray();
             s.WriteS32(values.Length);
             for (int i = 0; i < Actions.Count; i++)
@@ -479,310 +514,18 @@ namespace FFXIVCraftingSim
             s.Close();
         }
 
-        private static void ReadLevelDifferences(bool deleteCurrent = false)
-        {
-            if (deleteCurrent && File.Exists("LevelDifferences.db"))
-                File.Delete("LevelDifferences.db");
+      
 
-            if (File.Exists("LevelDifferences.db"))
-            {
-                SetStatus("Reading LevelDifferences from LevelDifferences.db...", 0);
-                DataStream s = new DataStream(File.ReadAllBytes("LevelDifferences.db"));
-                int length = s.ReadS32();
-                LevelDifferences = new List<LevelDifferenceInfo>(length);
-                SetStatus(null, 0, 0, length);
-                for (ushort i = 0; i < length; i++)
-                {
-                    LevelDifferenceInfo info = new LevelDifferenceInfo
-                    {
-                        Difference = s.ReadS32(),
-                        ProgressFactor = s.ReadS32(),
-                        QualityFactor = s.ReadS32()
-                    };
-                    LevelDifferences.Add(info);
-                    if (i % 100 == 0)
-                        SetStatus(null, i);
-                }
-                SetStatus(null, length);
-                s.Flush();
-                s.Close();
-            }
-            else
-            {
-                var sheet = Game.GameData.GetSheet<CraftLevelDifference>();
-                SetStatus("Reading LevelDifferences from sheets...", 0, 0, sheet.Count());
-                int count = sheet.Count();
-                int[] keys = sheet.Keys.ToArray();
-                LevelDifferences = new List<LevelDifferenceInfo>(count);
-                for (int i = 0; i < count; i++)
-                {
-                    var value = sheet[keys[i]];
-                    LevelDifferenceInfo info = new LevelDifferenceInfo
-                    {
-                        Difference = (short)value.Difference,
-                        ProgressFactor = (short)value.ProgressFactor,
-                        QualityFactor = (short)value.QualityFactor
-                    };
-
-                    LevelDifferences.Add(info);
-
-
-                    if (i % 100 == 0)
-                        SetStatus(null, i);
-                }
-
-                SetStatus(null, count);
-
-                WriteLevelDifferences();
-            }
-        }
-
-        private static void WriteLevelDifferences()
-        {
-            SetStatus("Writing LevelDifferences to LevelDifferences.db...", 0, 0, LevelDifferences.Count);
-            DataStream s = new DataStream();
-            s.WriteS32(LevelDifferences.Count);
-            for (int i = 0; i < LevelDifferences.Count; i++)
-            {
-                var value = LevelDifferences[i];
-                s.WriteS32(value.Difference);
-                s.WriteS32(value.ProgressFactor);
-                s.WriteS32(value.QualityFactor);
-
-                if (i % 100 == 0)
-                    SetStatus(null, i);
-            }
-            SetStatus(null, LevelDifferences.Count);
-
-            File.WriteAllBytes("LevelDifferences.db", s.GetBytes());
-            s.Flush();
-            s.Close();
-        }
-
-        private static void ReadRecipeRotations(bool deleteCurrent = false)
-        {
-            if (deleteCurrent && File.Exists("RecipeRotations.db"))
-                File.Delete("RecipeRotations.db");
-
-            if (File.Exists("RecipeRotations.db"))
-            {
-                SetStatus("Reading RecipeRotations from RecipeRotations.db...", 0);
-                DataStream s = new DataStream(File.ReadAllBytes("RecipeRotations.db"));
-                int length = s.ReadS32();
-                RecipeRotations = new Dictionary<AbstractRecipeInfo, List<RecipeSolutionInfo>>(length);
-                SetStatus(null, 0, 0, length);
-                for (ushort i = 0; i < length; i++)
-                {
-                    AbstractRecipeInfo info = new AbstractRecipeInfo
-                    {
-                        Level = s.ReadS32(),
-                        RequiredCraftsmanship = s.ReadS32(),
-                        RequiredControl = s.ReadS32(),
-                        Durability = s.ReadS32(),
-                        MaxProgress = s.ReadS32(),
-                        MaxQuality = s.ReadS32()
-                    };
-                    var ll = s.ReadS32();
-                    RecipeRotations[info] = new List<RecipeSolutionInfo>(ll);
-                    for (int j = 0; j < ll; j++)
-                    {
-                        RecipeSolutionInfo rotation = new RecipeSolutionInfo();
-                        rotation.MinLevel = s.ReadS32();
-                        rotation.MaxCraftsmanship = s.ReadS32();
-                        rotation.MinCraftsmanship = s.ReadS32();
-                        rotation.MinControl = s.ReadS32();
-                        rotation.CP = s.ReadS32();
-                        int l = s.ReadS32();
-                        ushort[] array = new ushort[l];
-                        for (int k = 0; k < l; k++)
-                            array[k] = (ushort)s.ReadU30();
-                        rotation.Rotation = array;
-                        RecipeRotations[info].Add(rotation);
-                    }
-
-                    if (i % 100 == 0)
-                        SetStatus(null, i);
-                }
-                SetStatus(null, length);
-                s.Flush();
-                s.Close();
-            }
-            else
-            {
-
-                SetStatus("Creating RecipeRotations from Recipes...", 0, 0, Recipes.Count);
-
-                RecipeRotations = new Dictionary<AbstractRecipeInfo, List<RecipeSolutionInfo>>();
-                for (int i = 0; i < Recipes.Count; i++)
-                {
-
-                    AbstractRecipeInfo abstractInfo = Recipes[i].GetAbstractData();
-                    if (!RecipeRotations.ContainsKey(abstractInfo))
-
-                        RecipeRotations[abstractInfo] = new List<RecipeSolutionInfo>();
-
-                    if (i % 100 == 0)
-                        SetStatus(null, i);
-                }
-
-                SetStatus(null, Recipes.Count);
-
-                WriteRecipeRotations();
-            }
-        }
-
-
-
-        public static void WriteRecipeRotations()
-        {
-            SetStatus("Writing RecipeRotations to RecipeRotations.db...", 0, 0, RecipeRotations.Count);
-            DataStream s = new DataStream();
-           
-            var keys = RecipeRotations.Keys.ToArray();
-            s.WriteS32(keys.Length);
-            for (int i = 0; i < keys.Length; i++)
-            {
-                var value = keys[i];
-                s.WriteS32(value.Level);
-                s.WriteS32(value.RequiredCraftsmanship);
-                s.WriteS32(value.RequiredControl);
-                s.WriteS32(value.Durability);
-                s.WriteS32(value.MaxProgress);
-                s.WriteS32(value.MaxQuality);
-
-                var rotations = RecipeRotations[value];
-                s.WriteS32(rotations.Count);
-                for (int j = 0; j < rotations.Count; j++)
-                {
-                    s.WriteS32(rotations[j].MinLevel);
-                    s.WriteS32(rotations[j].MaxCraftsmanship);
-                    s.WriteS32(rotations[j].MinCraftsmanship);
-                    s.WriteS32(rotations[j].MinControl);
-                    s.WriteS32(rotations[j].CP);
-                    s.WriteS32(rotations[j].Rotation.Array.Length);
-                    for (int k = 0; k < rotations[j].Rotation.Array.Length; k++)
-                        s.WriteU30(rotations[j].Rotation.Array[k]);
-                }
-                if (i % 100 == 0)
-                    SetStatus(null, i);
-            }
-            SetStatus(null, RecipeRotations.Count);
-
-            File.WriteAllBytes("RecipeRotations.db", s.GetBytes());
-            s.Flush();
-            s.Close();
-        }
-
-        public static int GetPlayerLevel(int level)
-        {
-            switch (level)
-            {
-                case 51: return 120;
-                case 52: return 125;
-                case 53: return 130;
-                case 54: return 133;
-                case 55: return 136;
-                case 56: return 139;
-                case 57: return 142;
-                case 58: return 145;
-                case 59: return 148;
-                case 60: return 150;
-                case 61: return 260;
-                case 62: return 265;
-                case 63: return 270;
-                case 64: return 273;
-                case 65: return 276;
-                case 66: return 279;
-                case 67: return 282;
-                case 68: return 285;
-                case 69: return 288;
-                case 70: return 290;
-                case 71: return 390;
-                case 72: return 395;
-                case 73: return 400;
-                case 74: return 403;
-                case 75: return 406;
-                case 76: return 409;
-                case 77: return 412;
-                case 78: return 415;
-                case 79: return 418;
-                case 80: return 420;
-            }
-
-            return level;
-        }
-
-        public static LevelDifferenceInfo GetCraftingLevelDifference(int levelDifference)
-        {
-            if (levelDifference <= LevelDifferences[0].Difference)
-                return LevelDifferences[0];
-            if (levelDifference >= LevelDifferences[LevelDifferences.Count - 1].Difference)
-                return LevelDifferences[LevelDifferences.Count - 1];
-            for (int i = 1; i < LevelDifferences.Count - 2; i++)
-                if (LevelDifferences[i].Difference == levelDifference)
-                    return LevelDifferences[i];
-
-            throw new Exception();
-        }
-
-        public static void AddRotationFromSim(CraftingSim sim)
-        {
-            if (sim == null || sim.CurrentRecipe == null || sim.CustomRecipe)
-                return;
-            if (sim.CurrentProgress < sim.CurrentRecipe.MaxProgress || sim.CurrentQuality < sim.CurrentRecipe.MaxQuality)
-                return;
-            CraftingSim s = sim.Clone();
-            s.AddActions(true, sim.GetCraftingActions());
-
-            var abstractData = s.CurrentRecipe.GetAbstractData();
-            if (!G.RecipeRotations.ContainsKey(abstractData))
-            {
-                Debugger.Break();
-                return;
-            }
-
-            
-
-            RecipeSolutionInfo infoWithMinLevel = RecipeSolutionInfo.FromSim(s, true);
-            RecipeSolutionInfo infoWithoutMinLevel = RecipeSolutionInfo.FromSim(s, false);
-
-            var list = G.RecipeRotations[abstractData];
-
-            if (!list.Contains(infoWithMinLevel) && !list.Any(x => x.IsBetterThan(infoWithMinLevel)))
-                list.Add(infoWithMinLevel);
-
-            for (int i = 0; i < list.Count; i++)
-            {
-                if (infoWithMinLevel.IsBetterThan(list[i]))
-                {
-                    list.RemoveAt(i);
-                    i--;
-                }
-            }
-
-            if (!list.Contains(infoWithoutMinLevel) && !list.Any(x => x.IsBetterThan(infoWithoutMinLevel)))
-                list.Add(infoWithoutMinLevel);
-
-            for (int i = 0; i < list.Count; i++)
-            {
-                if (infoWithoutMinLevel.IsBetterThan(list[i]))
-                {
-                    list.RemoveAt(i);
-                    i--;
-                }
-            }
-
-            MainWindow.UpdateRotationsCount();
-        }
+        
 
         public static RecipeSolutionInfo[] GetAllRotationsForRecipe(RecipeInfo recipe)
         {
-            return G.RecipeRotations[recipe.GetAbstractData()].ToArray();
+            return GameData.RecipeRotations[recipe.GetAbstractData()].ToArray();
         }
 
         public static void RemoveRotation(AbstractRecipeInfo abstractRecipeInfo, RecipeSolutionInfo rotationInfo)
         {
-            G.RecipeRotations[abstractRecipeInfo].Remove(rotationInfo);
+            GameData.RecipeRotations[abstractRecipeInfo].Remove(rotationInfo);
             MainWindow.UpdateRotationsCount();
         }
 

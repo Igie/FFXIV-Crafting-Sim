@@ -1,5 +1,5 @@
-﻿using FFXIVCraftingSim.Solving;
-using FFXIVCraftingSim.Solving.GeneticAlgorithm;
+﻿using FFXIVCraftingSimLib.Solving;
+using FFXIVCraftingSimLib.Solving.GeneticAlgorithm;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;

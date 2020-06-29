@@ -1,4 +1,5 @@
 ﻿using FFXIVCraftingSim.Types.GameData;
+using FFXIVCraftingSimLib.Types.GameData;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -65,7 +66,7 @@ namespace FFXIVCraftingSim.GUI.Windows
                 return true;
             if (!e1)
             {
-                string s = info.SearchString.ToLower();
+                string s = info.InfoString.ToLower();
                 bool contains = args.All(x => s.Contains(x));
                 if (contains)
                     return true;
@@ -74,7 +75,7 @@ namespace FFXIVCraftingSim.GUI.Windows
             if (!e2)
             {
                 string ingredient = TextBoxSearchIngredient.Text.ToLower();
-                if (info.Ingredients.Any(x => x.Name.ToLower() == ingredient))
+                if (G.Ingredients[info].Any(x => x.Name.ToLower() == ingredient))
                     return true;
             }
 

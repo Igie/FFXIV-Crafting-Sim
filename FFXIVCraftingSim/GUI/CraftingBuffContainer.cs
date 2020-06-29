@@ -1,4 +1,4 @@
-﻿using FFXIVCraftingSim.Actions.Buffs;
+﻿using FFXIVCraftingSimLib.Actions.Buffs;
 using System;
 using System.Collections.Generic;
 using System.Linq;
